@@ -13,8 +13,7 @@ class GaussianClassifier(Classifier):
         # 1xn matrix (1 row, n columns), therefore we need to transpose the left side
         return np.matrix(point - center).T.dot(np.matrix(point - center))
 
-    # TODO: should never see test data
-    def __init__(self, train_data, test_data, classes = [x for  x in range(10)]):
+    def __init__(self, train_data, classes = [x for  x in range(10)]):
         """
         :param classes: list of classes the classifier should train itself to distinguish
                         (e.g [3,5] for 3 vs 5 classifier)
@@ -24,7 +23,6 @@ class GaussianClassifier(Classifier):
         :param testLabels:
         """
 
-        (self.test_labels, self.test_data) = get_labels_and_points_from_data(test_data, classes)
         (train_labels, train_data) = get_labels_and_points_from_data(train_data, classes)
         self.classes = classes
         self.fit(train_labels, train_data)
@@ -47,24 +45,17 @@ class GaussianClassifier(Classifier):
             self.centers[label] = np.array(points_per_label[label]).mean(0)
             # TODO: comment
             self.covariance_matrix[label] = np.vectorize(GaussianClassifier.covariance_for_point, signature='(m),(n)->(m,m)')(
-                points_per_label[label], self.centers[label])[0]
-            #
-            # print(self.covariance_matrix[label] == np.cov(points_per_label[label], rowvar=False))
+                points_per_label[label], self.centers[label]).sum(axis=0) / len(points_per_label[label])
 
-        print('finished training')
-        # self.get_possibility_for_class(5, self.test_data[0])
-        # self.get_possibility_for_class(3, self.test_data[0])
-        print(self.get_possibility_for_class(5, self.test_data[200]))
-        print(self.get_possibility_for_class(3, self.test_data[200]))
-        # print(self.get_possibility_for_class(self.test_labels[0], self.test_data[0]))
+    def predict(self, X):
+        return list(map(lambda x: self.predict_single(x), X))
+
+    def predict_single(self, point):
+        possibilities = list(map(lambda x: self.get_possibility_for_class(x, point), self.classes))
+        winningIndex = possibilities.index(max(possibilities))
 
 
-
-    def predict(self):
-        pass
-
-    def predict_single(seldetf):
-        pass
+        return self.classes[winningIndex]
 
     def get_possibility_for_class(self, point_class, point):
         two_pi_det = 2 * math.pi * np.linalg.det(self.covariance_matrix[point_class])
@@ -76,5 +67,6 @@ class GaussianClassifier(Classifier):
 train_data = parse_data_file('./Dataset/train')
 test_data = parse_data_file('./Dataset/test')
 
-three_vs_five = GaussianClassifier(train_data, test_data, [3,5])
-# print(three_vs_five.score())
+three_vs_five = GaussianClassifier(train_data, [3,5])
+(test_labels, test_data) = get_labels_and_points_from_data(test_data, [3,5])
+print(three_vs_five.score(test_data, test_labels))
