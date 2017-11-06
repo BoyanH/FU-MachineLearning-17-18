@@ -32,6 +32,8 @@ class GaussianClassifier(Classifier):
         points_per_label = {}
         self.centers = {}
         self.covariance_matrix = {}
+        self.covariance_matrix_det = {}
+        self.convariance_matrix_pinv = {}
 
         for idx, point in enumerate(train_data):
             current_label = train_labels[idx]
@@ -46,6 +48,8 @@ class GaussianClassifier(Classifier):
             # TODO: comment
             self.covariance_matrix[label] = np.vectorize(GaussianClassifier.covariance_for_point, signature='(m),(n)->(m,m)')(
                 points_per_label[label], self.centers[label]).sum(axis=0) / len(points_per_label[label])
+            self.covariance_matrix_det[label] = np.linalg.det(self.covariance_matrix[label])
+            self.convariance_matrix_pinv[label] = np.linalg.pinv(self.covariance_matrix[label])
 
     def predict(self, X):
         return list(map(lambda x: self.predict_single(x), X))
@@ -58,10 +62,10 @@ class GaussianClassifier(Classifier):
         return self.classes[winningIndex]
 
     def get_possibility_for_class(self, point_class, point):
-        two_pi_det = 2 * math.pi * np.linalg.det(self.covariance_matrix[point_class])
+        two_pi_det = 2 * math.pi * self.covariance_matrix_det[point_class]
         left_side = 1 / max(np.nextafter(np.float16(0), np.float16(1)), math.sqrt(two_pi_det))
         right_side = math.e**(-0.5 * (point - self.centers[point_class]).T.
-                              dot(np.linalg.pinv(self.covariance_matrix[point_class])).dot(point - self.centers[point_class]))
+                              dot(self.convariance_matrix_pinv[point_class]).dot(point - self.centers[point_class]))
         return left_side * right_side
 
 train_data = parse_data_file('./Dataset/train')
@@ -69,4 +73,5 @@ test_data = parse_data_file('./Dataset/test')
 
 three_vs_five = GaussianClassifier(train_data, [3,5])
 (test_labels, test_data) = get_labels_and_points_from_data(test_data, [3,5])
+print("now testing")
 print(three_vs_five.score(test_data, test_labels))
