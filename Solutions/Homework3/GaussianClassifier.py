@@ -93,33 +93,37 @@ test_data = parse_data_file('./Dataset/test')
 
 three_vs_five = GaussianClassifier(train_data, [3,5])
 (three_vs_five_test_labels, three_vs_five_test_data) = get_labels_and_points_from_data(test_data, [3,5])
-print("Score 3 vs 5: {}%".format(three_vs_five.score(three_vs_five_test_data, three_vs_five_test_labels)))
+print("Score 3 vs 5: {}".format(three_vs_five.score(three_vs_five_test_data, three_vs_five_test_labels)))
 
 three_vs_seven = GaussianClassifier(train_data, [3,7])
 (three_vs_seven_test_labels, three_vs_seven_test_data) = get_labels_and_points_from_data(test_data, [3,7])
-print("Score 3 vs 7: {}%".format(three_vs_seven.score(three_vs_seven_test_data, three_vs_seven_test_labels)))
+print("Score 3 vs 7: {}".format(three_vs_seven.score(three_vs_seven_test_data, three_vs_seven_test_labels)))
 
 three_vs_eight = GaussianClassifier(train_data, [3,8])
 (three_vs_eight_test_labels, three_vs_eight_test_data) = get_labels_and_points_from_data(test_data, [3,8])
-print("Score 3 vs 8: {}%".format(three_vs_eight.score(three_vs_eight_test_data, three_vs_eight_test_labels)))
+print("Score 3 vs 8: {}".format(three_vs_eight.score(three_vs_eight_test_data, three_vs_eight_test_labels)))
 
 five_vs_seven = GaussianClassifier(train_data, [5,7])
 (five_vs_seven_test_labels, five_vs_seven_test_data) = get_labels_and_points_from_data(test_data, [5,7])
-print("Score 5 vs 7: {}%".format(five_vs_seven.score(five_vs_seven_test_data, five_vs_seven_test_labels)))
+print("Score 5 vs 7: {}".format(five_vs_seven.score(five_vs_seven_test_data, five_vs_seven_test_labels)))
 
 five_vs_eight = GaussianClassifier(train_data, [5,8])
 (five_vs_eight_test_labels, five_vs_eight_test_data) = get_labels_and_points_from_data(test_data, [5,8])
-print("Score 5 vs 8: {}%".format(five_vs_eight.score(five_vs_eight_test_data, five_vs_eight_test_labels)))
+print("Score 5 vs 8: {}".format(five_vs_eight.score(five_vs_eight_test_data, five_vs_eight_test_labels)))
 
 seven_vs_eight = GaussianClassifier(train_data, [7,8])
 (seven_vs_eight_test_labels, seven_vs_eight_test_data) = get_labels_and_points_from_data(test_data, [7,8])
-print("Score 7 vs 8: {}%".format(seven_vs_eight.score(seven_vs_eight_test_data, seven_vs_eight_test_labels)))
+print("Score 7 vs 8: {}".format(seven_vs_eight.score(seven_vs_eight_test_data, seven_vs_eight_test_labels)))
 
 combined = GaussianClassifier(train_data, [3, 5, 7, 8])
 (combined_test_labels, combined_test_data) = get_labels_and_points_from_data(test_data, [3,5,7,8])
-print("Score 3 vs 5 vs 7 vs 8: {}%".format(combined.score(combined_test_data, combined_test_labels)))
+print("Score 3 vs 5 vs 7 vs 8: {}".format(combined.score(combined_test_data, combined_test_labels)))
 
 all_digits = [x for x in range(10)]
 all_classifier = GaussianClassifier(train_data, all_digits)
 (all_test_labels, all_test_data) = get_labels_and_points_from_data(test_data, all_digits)
-print("Score all: {}%".format(all_classifier.score(all_test_data, all_test_labels)))
+print("Score all: {}".format(all_classifier.score(all_test_data, all_test_labels)))
+
+all_classifier_train = GaussianClassifier(train_data, all_digits)
+(all_train_labels, all_train_data) = get_labels_and_points_from_data(train_data, all_digits)
+print("Score all with train data: {}".format(all_classifier_train.score(all_train_data, all_train_labels)))

@@ -5,7 +5,7 @@
 \usepackage{fancyvrb}
 
 \newcommand{\dozent}{Prof. R. Rojas}					% <-- Names des Dozenten eintragen
-\newcommand{\projectNo}{2}
+\newcommand{\projectNo}{3}
 \newcommand{\veranstaltung}{Mustererkennung}
 \newcommand{\semester}{WS17/18}
 \newcommand{\studenten}{Boyan Hristov, Nedeltscho Petrov}
@@ -20,18 +20,69 @@ Link zum Git Repository: \url{https://github.com/BoyanH/FU-MachineLearning-17-18
 
 % /////////////////////// Aufgabe 1 /////////////////////////
 
-\section*{Score}
-Das ist die Ausgabe des Programs und damit auch das Score
-\begin{lstlisting}
-Score for 3 vs 7: 100.0%
-Score for 3 vs 8: 100.0%
-Score for 5 vs 7: 100.0%
-Score for 5 vs 8: 100.0%
-Score for 7 vs 8: 100.0%
-\end{lstlisting}
-
 \section*{Klassifikation mit Gauss Verteilung}
 
+
+\section*{Score (Output des Programs) bzw. Analyse}
+Das ist die Ausgabe des Programs und damit auch das Score
+\begin{lstlisting}
+Score 3 vs 5: 0.923312883436
+Score 3 vs 7: 0.929712460064
+Score 3 vs 8: 0.843373493976
+Score 5 vs 7: 0.931596091205
+Score 5 vs 8: 0.874233128834
+Score 7 vs 8: 0.837060702875
+Score 3 vs 5 vs 7 vs 8: 0.838810641628
+Score all: 0.840558046836
+Score all with train data: 0.969551501852
+\end{lstlisting}
+
+Leider haben wir sehr komisches Score bei der letzten Hausaufgabe bekommen und können das jetzige anhand von selbsterstellte Daten von linearen Regression vergleichen. Mit den Daten aus der Musterlösung, die im Tutorium vorgestellt wurde, wurden wir sagen, dass die jetzige Lösung mit Gauss Verteilung nicht besser (sogar schlechter) ist, als diese mit linearen Regression (da war die Unterscheidung zwischen 5 und 7 mit $94+\%$ Genauigkeit ).
+
+Wenn man alle Ziffer vergleicht, bekommt man ein Score von $84.0558046836\%$ Genauigkeit mit den Testdaten und $96.9551501852\%$ Genauigkeit mit den Traindaten. D.h. wir lernen immer noch ganz viel "auswendig" bzw. es gibt relativ viel "overfitting". 
+
+Das Programm funktioniert ungefähr so schnell wie bei der Klassifikation mit linearen Regression. Die Implementierung war aber schwieriger und kostet mehr Speicher damit es performant ist (Zentren, Konvergenzmatritzen, pseudo-invertierte Konvergenzmatritzen und Determinanten). Bei der Implementierung mit linearen Regression musste man nur die "Hat" Matritzen speichern.
+
+Es ist aber leichter für mehrere Klassen zu implementieren. Man muss nicht separat die Ergebnissen vom mehreren Klassifikatoren vergleichen um zwischen mehrere Klassen zu unterscheiden. Man kann direkt die Wahrscheinlichkeit, dass ein Punkt zu einer Klasse gehört berechnen, und dann direkt die Klasse mit der Höhsten Wahrscheinlichkeit wählen.
+
+\section*{Erklärung interessanteren Teilen des Codes}
+
+Die Fit Methode ist diesmal nicht besonders interessant, da wir dort nur die Zentren berechnen (Alle Punkte aufsummieren und durch ihre Anzahl teilen) und die Konvergenzmatrixberechnungsfunktion aufrufen. Diese wäre aber interessant, da wir die vektorisiert haben und die Hauptimplementierung ausgelagert haben.
+
+Die Summe und die Teilung durch der Anzahl kann man hier auch sehen. Sonst haben wir numpy.vectorize benutzt, um die Berechnung der einzelnen Summaren zu beschleunigen.
+\begin{lstlisting}[style=py]
+self.covariance_matrix[label] = np.vectorize(GaussianClassifier.covariance_for_point, signature='(m),(n)->(m,m)')(
+                points_per_label[label], self.centers[label]).sum(axis=0) / len(points_per_label[label])
+\end{lstlisting}
+
+Wir nutzen hier die Formel aus der Vorlesung. Das einzigste Unterschied hier ist, dass wir den ersten Vektor transponieren und nicht der zweiten.
+Das ist so, da wir am Ende eine Matrix bekommen wollen und Numpy interpretiert eine 1-dimensionale Liste als eine Matritze der Form 1xn und nicht mx1 (Vektor) als wir
+diese betrachten wollen und umgekehrt für das zweite.
+\begin{lstlisting}[style=py]
+def covariance_for_point(point, center):
+        return np.matrix(point - center, dtype=np.float64).T.dot(np.matrix(point - center, dtype=np.float64))
+\end{lstlisting}
+
+Bei der Berechnung der Wahrscheinlichkeit haben wir auch die Formel aus der Vorlesung benutzt. Wichtig wäre hier, dass es zu eine Determinante = 0 kommen könnte,
+wenn wir linear abhängige Features haben. Das ist oft der Fall bei manchen Ziffern, da wir die Pixels als Features betrachten und diese oft abhängig sind. Z.b wenn eine Ziffer ein Horizontales Strich hat, dann falls ein Pixel grauer ist, sind mit größem Wahrscheinlichkeit auch diese daneben (links und rechts) auch grauer.
+
+Damit wir die 0 Determinante umgehen (wegen Division mit 0), haben wir $2 * \pi * ||X||$ ausgelagert und benutzen später das Minimum von die und eine kleine Delta.
+\begin{lstlisting}[style=py]
+def get_possibility_for_class(self, point_class, point):
+        two_pi_det = 2 * math.pi * self.covariance_matrix_det[point_class]
+        left_side = 1 / max(0.2, math.sqrt(two_pi_det))
+        right_side = math.e**(-0.5 * (point - self.centers[point_class]).T.
+                              dot(self.covariance_matrix_pinv[point_class]).dot(point - self.centers[point_class]))
+
+        return left_side * right_side
+\end{lstlisting}
+
+Die Voraussage machen wir, in dem wir die Wahrscheinlichkeit für je Klasse berechnen und dann diese mit höhsten nehmen.
+\begin{lstlisting}[style=py]
+possibilities = list(map(lambda x: self.get_possibility_for_class(x, point), self.classes))
+        winning_index = possibilities.index(max(possibilities))
+        return self.classes[winning_index]
+\end{lstlisting}
 
 \section*{Vollständiges Code}
 
@@ -161,6 +212,11 @@ all_digits = [x for x in range(10)]
 all_classifier = GaussianClassifier(train_data, all_digits)
 (all_test_labels, all_test_data) = get_labels_and_points_from_data(test_data, all_digits)
 print("Score all: {}%".format(all_classifier.score(all_test_data, all_test_labels)))
+
+all_digits = [x for x in range(10)]
+all_classifier = GaussianClassifier(train_data, all_digits)
+(all_train_labels, all_train_data) = get_labels_and_points_from_data(train_data, all_digits)
+print("Score all: {}".format(all_classifier.score(all_train_labels, all_train_data)))
 
 \end{lstlisting}
 
