@@ -1,5 +1,7 @@
 *.pyc
-*.idea
+.idea
+.idea/*
 *.log
 *.out
 *.aux
+__pycache__

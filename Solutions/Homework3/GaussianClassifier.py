@@ -8,12 +8,20 @@ class GaussianClassifier(Classifier):
     @staticmethod
     def covariance_for_point(point, center):
         # calculate covariance for a single point (well not really, but a single summar thingy)
-        return np.matrix(point - center).T.dot(np.matrix(point - center))
+        # idea of this method is to easily vectorize it with np.vectorize
+
+        # implementation specific:
+        # in the formula, the first vector should be transposed and the second not
+        # this is only done, because we need to receive a matrix at the end
+        # with the way numpy handles single vectors, we actually need to transpose the first one
+        # and not the second in order to do that what we are used to in math
+        # (numpy treats a 1-dimensional array as 1xn matrix and not as nx1 as we want to)
+        return np.matrix(point - center, dtype=np.float64).T.dot(np.matrix(point - center, dtype=np.float64))
 
     def __init__(self, train_data, classes = [x for  x in range(10)]):
         """
         :param classes: list of classes the classifier should train itself to distinguish
-                        (e.g [3,5] for 3 vs 5 classifier)
+                        (e.g [3,5] for 3 vs 5 classifier) default is all digits
         :param trainData:
         :param trainLabels:
         :param testData:
@@ -23,52 +31,61 @@ class GaussianClassifier(Classifier):
         self.centers = {}
         self.covariance_matrix = {}
         self.covariance_matrix_det = {}
-        self.convariance_matrix_pinv = {}
-        (train_labels, train_data) = get_labels_and_points_from_data(train_data, classes)
+        self.covariance_matrix_pinv = {}
+        (train_labels, train_points) = get_labels_and_points_from_data(train_data, classes)
         self.classes = classes
-        self.fit(train_labels, train_data)
+        self.fit(train_labels, train_points)
 
-    def fit(self, train_labels, train_data):
-        assert(len(train_labels) == len(train_data))
+    def fit(self, train_labels, train_points):
+        assert(len(train_labels) == len(train_points))
         points_per_label = {}
 
-        for idx, point in enumerate(train_data):
+        # sort points in a dictionary, separated by classes
+        # eg {3: [first 256 dimension vector, second 256 dimensional vector, etc.], 5: ... , ...}
+        for idx, point in enumerate(train_points):
             current_label = train_labels[idx]
-            if not current_label in points_per_label:
+            if current_label not in points_per_label:
                 points_per_label[current_label] = [point]
             else:
                 points_per_label[current_label].append(point)
 
+        # then for each class, find the centroid and the covariance matrix
+        # for optimization reasons, we also save the inverse of the covariance matrix and it's determinant
         for label in points_per_label:
-            # average of all points from the current class
-            self.centers[label] = np.array(points_per_label[label]).mean(0)
+            # average of all points from the current class (with axis 0, so row-wise average)
+            self.centers[label] = np.array(points_per_label[label], dtype=np.float64).mean(0)
             # calculate covariance matrix using vectorization (see covariance_for_point static method)
+            # using the formula 1/n*(sum_i((point-center)(point-center)T))
             self.covariance_matrix[label] = np.vectorize(GaussianClassifier.covariance_for_point, signature='(m),(n)->(m,m)')(
                 points_per_label[label], self.centers[label]).sum(axis=0) / len(points_per_label[label])
+            # also calculate and save determinant and pseudo-inverse of matrix for performance reasons
             self.covariance_matrix_det[label] = np.linalg.det(self.covariance_matrix[label])
-            self.convariance_matrix_pinv[label] = np.linalg.pinv(self.covariance_matrix[label])
+            self.covariance_matrix_pinv[label] = np.linalg.pinv(self.covariance_matrix[label])
 
     def predict(self, X):
         return list(map(lambda x: self.predict_single(x), X))
 
     def predict_single(self, point):
         possibilities = list(map(lambda x: self.get_possibility_for_class(x, point), self.classes))
-        winningIndex = possibilities.index(max(possibilities))
+        winning_index = possibilities.index(max(possibilities))
 
-
-        return self.classes[winningIndex]
+        return self.classes[winning_index]
 
     def get_possibility_for_class(self, point_class, point):
         # using the formula from the lecture, calculate the probability for a point with coordinates to
         # be part of a class
 
-        # only important thing here is that 2*pi*det(covariance_matrix) can be zero, so we use
+        # only important thing here is that 2*pi*det(covariance_matrix) can be zero
+        # (in case the covariance_matrix doesn't have a full rank (when we have identical values for some features
+        # this can often be the case because of the white pixels at the edges)),
+        # so we use
         # np.nextafter to replace any zeros with a reaaaaly small float (because of DivideByZero exceptions...)
 
         two_pi_det = 2 * math.pi * self.covariance_matrix_det[point_class]
-        left_side = 1 / max(np.nextafter(np.float16(0), np.float16(1)), math.sqrt(two_pi_det))
+        left_side = 1 / max(0.2, math.sqrt(two_pi_det))
         right_side = math.e**(-0.5 * (point - self.centers[point_class]).T.
-                              dot(self.convariance_matrix_pinv[point_class]).dot(point - self.centers[point_class]))
+                              dot(self.covariance_matrix_pinv[point_class]).dot(point - self.centers[point_class]))
+
         return left_side * right_side
 
 train_data = parse_data_file('./Dataset/train')
@@ -103,6 +120,6 @@ combined = GaussianClassifier(train_data, [3, 5, 7, 8])
 print("Score 3 vs 5 vs 7 vs 8: {}%".format(combined.score(combined_test_data, combined_test_labels)))
 
 all_digits = [x for x in range(10)]
-all = GaussianClassifier(train_data, all_digits)
+all_classifier = GaussianClassifier(train_data, all_digits)
 (all_test_labels, all_test_data) = get_labels_and_points_from_data(test_data, all_digits)
-print("Score all: {}%".format(combined.score(all_test_data, all_test_labels)))
+print("Score all: {}%".format(all_classifier.score(all_test_data, all_test_labels)))

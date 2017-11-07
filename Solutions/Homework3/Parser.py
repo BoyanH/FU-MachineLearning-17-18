@@ -17,6 +17,6 @@ def parse_data_file(file_name):
 def get_labels_and_points_from_data(data, classes):
     data = list(filter(lambda x: int(x[0]) in classes, data))
     labels = np.array(list(map(lambda x: int(x[0]), data)))
-    points = np.array(list(map(lambda x: x[1:], data)))
+    points = np.array(list(map(lambda x: x[1:], data)), dtype=np.float64)
 
     return labels, points
