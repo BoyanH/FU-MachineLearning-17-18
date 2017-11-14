@@ -2,6 +2,7 @@ from Classifier import Classifier
 from Parser import get_data_set
 import numpy as np
 import math
+from random import random
 
 
 class FisherClassifier(Classifier):
@@ -11,13 +12,13 @@ class FisherClassifier(Classifier):
 
     @staticmethod
     def split_in_classes(X_train, y_train):
-        splited_X = ([], [])
+        split_X = ([], [])
 
         for idx, x in enumerate(X_train):
             current_label = y_train[idx]
-            splited_X[current_label].append(x)
+            split_X[current_label].append(x)
 
-        return splited_X
+        return split_X
 
     def project_point(self, x):
         return x.dot(self.alpha)
@@ -46,6 +47,26 @@ class FisherClassifier(Classifier):
         return projected < self.separation_point
 
 
-X_train, X_test, y_train, y_test = get_data_set()
-classifier = FisherClassifier(X_train, y_train)
-print('Score: {}'.format(classifier.score(X_test, y_test)))
+max_score = 0
+min_score = 100
+best_seed = 0
+worst_seed = 0
+
+for i in range(1000):
+    X_train, X_test, y_train, y_test = get_data_set(i)
+    classifier = FisherClassifier(X_train, y_train)
+    score = classifier.score(X_test, y_test)
+    if score > max_score:
+        max_score = score
+        best_seed = i
+    if score < min_score:
+        min_score = score
+        worst_seed = i
+
+print('Best score for seed={}: {}'.format(best_seed, max_score))
+print('Worst score for seed{}: {}'.format(worst_seed, min_score))
+
+# X_train, X_test, y_train, y_test = get_data_set(seed=879)
+# classifier = FisherClassifier(X_train, y_train)
+# score = classifier.score(X_test, y_test)
+# print('Score: {}'.format(classifier.score(X_test, y_test)))
