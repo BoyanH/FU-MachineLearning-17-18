@@ -1,0 +1,2 @@
+Best score for seed=879: 0.930510314875
+Worst score for seed530: 0.880564603692
