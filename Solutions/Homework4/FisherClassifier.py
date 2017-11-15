@@ -38,7 +38,6 @@ class FisherClassifier(Classifier):
 
     def plot_class(self, points, center):
         projected_center = self.project_point(center)
-        # project_points = np.vectorize(lambda x:  self.project_point(x), signature='(n)->(n)')
         projected_points = list(map(lambda x: self.project_point(x), points))
         covariance = FisherClassifier.get_covariance_for_projected(projected_points, projected_center)
         density_a = FisherClassifier.get_density_function(projected_center, covariance)
