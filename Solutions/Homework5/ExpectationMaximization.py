@@ -1,9 +1,9 @@
 from Parser import parse_data
 import numpy as np
-from sklearn.linear_model import LinearRegression
-import math
+from Helpers import save_plot
 from random import random
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from scipy.interpolate import spline
 import random
 
@@ -12,14 +12,17 @@ USE_DISTANCE_THRESHOLD = True
 MOVEMENT_THRESHOLD = 0.002
 DISTANCE_THRESHOLD = 6
 
-VERBOSE = False
-PLOT_MEAN_FOR_CLUSTERS_COUNT = True
+VERBOSE = True
+PLOT_MEAN_FOR_CLUSTERS_COUNT = False
+PLOT_CLUSTERING_FOR_SOME_K = True
+SAVE_PLOTS = True
 
 
 class ExpectationMaximization:
     @staticmethod
     def get_initial_centers_from_data_set(data, k):
         if CHOOSE_INITIAL_CENTERS_RANDOMLY:
+            seed = random.randint(0, 1000)
             random.seed(8)
             return np.array([x for x in random.choices(data, k=k)])
 
@@ -52,7 +55,7 @@ class ExpectationMaximization:
         self.k_clusters = k_clusters
         self.cluster_indexes = [x for x in range(self.k_clusters)]
         self.cluster_centers = ExpectationMaximization.get_initial_centers_from_data_set(data, k_clusters)
-        self.covariances_per_cluster = [[np.eye(len(x))] for x in self.cluster_centers]
+        self.covariances_per_cluster = [[np.identity(len(x))] for x in self.cluster_centers]
         self.reset_points_per_cluster()
         self.max_iterations = max_iterations
         self.apply_expectation_maximization()
@@ -67,7 +70,6 @@ class ExpectationMaximization:
         self.calculate_cluster_centers()
         self.calculate_covariances()
         self.update_mean_distance_to_cluster_centers()
-
 
         if USE_DISTANCE_THRESHOLD:
             if (self.mean_distance > DISTANCE_THRESHOLD and
@@ -121,9 +123,9 @@ class ExpectationMaximization:
     def calculate_covariances(self):
         # if we only have the center in our cluster (empty cluster) then just use the identity
         # matrix as covariance matrix again
-        get_covariances = np.vectorize(lambda x, points: np.cov(points[x],
-                                                                rowvar=False, bias=True) if len(points[x]) > 1 else
-        np.eye(len(points[x][0])), signature='(),(m)->(n,n)')
+        get_covariances = np.vectorize(lambda x, points: np.linalg.pinv(np.cov(points[x],
+                                                                rowvar=False, bias=True)) if len(points[x]) > 1 else
+        np.identity(len(points[x][0])), signature='(),(m)->(n,n)')
         self.covariances_per_cluster = get_covariances(self.cluster_indexes, self.points_per_cluster)
 
     def get_average_distance(self):
@@ -154,3 +156,24 @@ if PLOT_MEAN_FOR_CLUSTERS_COUNT:
     plt.xlabel('Amount of clusters')
     plt.ylabel('Average Mahalanobis\' distance')
     plt.show()
+
+if PLOT_CLUSTERING_FOR_SOME_K:
+    plot_for_k_s = [2,3,5,6]
+
+    for k in plot_for_k_s:
+        em.cluster(data, k)
+        colors = cm.rainbow(np.linspace(0, 1, k))
+
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
+
+        for cl_idx in em.cluster_indexes:
+            X = em.points_per_cluster[cl_idx]
+            x, y = zip(*X)
+            # ax1.figure(figsize=(15, 10))
+            ax1.scatter(x, y, edgecolors="black", c=colors[cl_idx])
+
+        if SAVE_PLOTS:
+            save_plot(fig, './plots/plot_for_k_{}.png'.format(k))
+        else:
+            plt.show()
