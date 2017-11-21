@@ -10,11 +10,11 @@ import random
 CHOOSE_INITIAL_CENTERS_RANDOMLY = True
 USE_DISTANCE_THRESHOLD = True
 MOVEMENT_THRESHOLD = 0.002
-DISTANCE_THRESHOLD = 6
+DISTANCE_THRESHOLD = 5
 
 VERBOSE = True
-PLOT_MEAN_FOR_CLUSTERS_COUNT = False
-PLOT_CLUSTERING_FOR_SOME_K = True
+PLOT_MEAN_FOR_CLUSTERS_COUNT = True
+PLOT_CLUSTERING_FOR_SOME_K = False
 SAVE_PLOTS = True
 
 
@@ -23,7 +23,9 @@ class ExpectationMaximization:
     def get_initial_centers_from_data_set(data, k):
         if CHOOSE_INITIAL_CENTERS_RANDOMLY:
             seed = random.randint(0, 1000)
-            random.seed(8)
+            random.seed(seed)
+            print('seed: {}'.format(seed))
+
             return np.array([x for x in random.choices(data, k=k)])
 
         min_point = data.min(0)
@@ -41,6 +43,7 @@ class ExpectationMaximization:
         self.sigma = None
         self.cluster_centers = None
         self.points_per_cluster = None
+        self.inv_covariances_per_cluster = []
         self.covariances_per_cluster = []
         self.cluster_indexes = None
         self.last_diff = None
@@ -52,10 +55,13 @@ class ExpectationMaximization:
 
     def cluster(self, data, k_clusters, max_iterations=30):
         self.data = data
+        self.mean_distance = None
+        self.last_diff = None
         self.k_clusters = k_clusters
         self.cluster_indexes = [x for x in range(self.k_clusters)]
         self.cluster_centers = ExpectationMaximization.get_initial_centers_from_data_set(data, k_clusters)
         self.covariances_per_cluster = [[np.identity(len(x))] for x in self.cluster_centers]
+        self.inv_covariances_per_cluster = self.covariances_per_cluster
         self.reset_points_per_cluster()
         self.max_iterations = max_iterations
         self.apply_expectation_maximization()
@@ -64,17 +70,26 @@ class ExpectationMaximization:
         if VERBOSE:
             print('iteration: {}'.format(k))
         old_centers = np.copy(self.cluster_centers)
-        old_distance = self.mean_distance
+        old_distance = np.copy(self.mean_distance)
         self.reset_points_per_cluster()
         self.assign_points_to_clusters()
         self.calculate_cluster_centers()
         self.calculate_covariances()
         self.update_mean_distance_to_cluster_centers()
 
+        # for some reason old_distance is None or old_distance > ...
+        # was throwing errors cannot compare NoneType with int
+        # therefore the less readable not old_distance :X
+
+        # but basically, if judging on distance for when to stop,
+        # if the average distance gets worse, we reach the max amount of iterations or we reach our desired
+        # threshold, stop
         if USE_DISTANCE_THRESHOLD:
             if (self.mean_distance > DISTANCE_THRESHOLD and
-                        k < self.max_iterations and (old_distance is None or old_distance > self.mean_distance)):
+                        k < self.max_iterations and (not old_distance or old_distance > self.mean_distance)):
                 self.apply_expectation_maximization(k + 1)
+
+        # other method to determine when to stop is by simply checking if the cluster centers still move enough
         elif abs((old_centers - self.cluster_centers).sum()) > MOVEMENT_THRESHOLD and k < self.max_iterations:
             self.apply_expectation_maximization(k + 1)
 
@@ -113,7 +128,7 @@ class ExpectationMaximization:
 
     def get_distance_mahalanobis_to_cluster(self, x, i_cluster):
         return (x - self.cluster_centers[i_cluster]).dot(
-            self.covariances_per_cluster[i_cluster]).dot((x - self.cluster_centers[i_cluster]).T)
+            self.inv_covariances_per_cluster[i_cluster]).dot((x - self.cluster_centers[i_cluster]).T)
 
     def calculate_cluster_centers(self):
         get_cluster_centers = np.vectorize(lambda x, points_per_center: points_per_center[x].mean(0),
@@ -123,13 +138,12 @@ class ExpectationMaximization:
     def calculate_covariances(self):
         # if we only have the center in our cluster (empty cluster) then just use the identity
         # matrix as covariance matrix again
-        get_covariances = np.vectorize(lambda x, points: np.linalg.pinv(np.cov(points[x],
-                                                                rowvar=False, bias=True)) if len(points[x]) > 1 else
+        get_covariances = np.vectorize(lambda x, points: np.cov(points[x],
+                                                                rowvar=False, bias=True) if len(points[x]) > 1 else
         np.identity(len(points[x][0])), signature='(),(m)->(n,n)')
         self.covariances_per_cluster = get_covariances(self.cluster_indexes, self.points_per_cluster)
-
-    def get_average_distance(self):
-        pass
+        self.inv_covariances_per_cluster = np.vectorize(lambda x: np.linalg.pinv(x),
+                                                        signature='(m,n)->(m,n)')(self.covariances_per_cluster)
 
 
 data = parse_data()
@@ -143,6 +157,7 @@ if PLOT_MEAN_FOR_CLUSTERS_COUNT:
 
     for cluster_count in cluster_count_experiments:
         em.cluster(data, cluster_count)
+        print(em.mean_distance)
         cluster_count_mean_distance_results.append(em.mean_distance)
 
         if VERBOSE:
