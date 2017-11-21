@@ -167,10 +167,15 @@ if PLOT_MEAN_FOR_CLUSTERS_COUNT:
     x = np.linspace(min(cluster_count_experiments), max(cluster_count_experiments), 300)
     y = spline(cluster_count_experiments, cluster_count_mean_distance_results, x)
 
+    figure = plt.figure()
     plt.plot(x, y)
     plt.xlabel('Amount of clusters')
     plt.ylabel('Average Mahalanobis\' distance')
-    plt.show()
+
+    if SAVE_PLOTS:
+        save_plot(figure, './plots/avrg_distance_for_k.png')
+    else:
+        plt.show()
 
 if PLOT_CLUSTERING_FOR_SOME_K:
     plot_for_k_s = [2,3,5,6]
