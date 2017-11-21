@@ -1,6 +1,6 @@
 from Parser import parse_data
 import numpy as np
-from Helpers import save_plot
+from Helpers import save_plot, plot_covariance
 from random import random
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -159,6 +159,7 @@ if PLOT_MEAN_FOR_CLUSTERS_COUNT:
 
 if PLOT_CLUSTERING_FOR_SOME_K:
     plot_for_k_s = [2,3,5,6]
+    # plot_for_k_s = [2]
 
     for k in plot_for_k_s:
         em.cluster(data, k)
@@ -172,6 +173,10 @@ if PLOT_CLUSTERING_FOR_SOME_K:
             x, y = zip(*X)
             # ax1.figure(figsize=(15, 10))
             ax1.scatter(x, y, edgecolors="black", c=colors[cl_idx])
+
+            center = em.cluster_centers[cl_idx]
+            covariance = em.covariances_per_cluster[cl_idx]
+            plot_covariance(ax1, center[0], center[1], covariance)
 
         if SAVE_PLOTS:
             save_plot(fig, './plots/plot_for_k_{}.png'.format(k))
