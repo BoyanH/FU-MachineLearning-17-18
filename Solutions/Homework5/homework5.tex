@@ -5,7 +5,7 @@
 \usepackage{fancyvrb}
 
 \newcommand{\dozent}{Prof. R. Rojas}					% <-- Names des Dozenten eintragen
-\newcommand{\projectNo}{4}
+\newcommand{\projectNo}{5}
 \newcommand{\veranstaltung}{Mustererkennung}
 \newcommand{\semester}{WS17/18}
 \newcommand{\studenten}{Boyan Hristov, Nedeltscho Petrov}
@@ -18,270 +18,328 @@
 
 Link zum Git Repository: \url{https://github.com/BoyanH/FU-MachineLearning-17-18/tree/master/Solutions/Homework\projectNo}
 
-\section*{Fischer Klassifikation}
+\section*{Expectation Maximization}
 
+Das Verfahren is für gestreute Datensätze eine deutlich bessere Clustering Methode als K-Means. Viel, womit wir das
+vergleichen können, haben wir noch nicht gelern. Für den gegebenen Datensatz, der zwei sehr stark ausgeprägte Clusters
+hat, hat es aber super funktioniert. Wir erkennen aber die Clusters nur anhand der Streuung der Daten, d.h also wir
+wurden Schwierigkeiten mit K-Means haben, selbe Ergebsnisse zu bekommen.
 
-\section*{Score (Output des Programs) bzw. Analyse}
-Das ist die Ausgabe des Programs und damit auch das Score
-\begin{lstlisting}
-Best score for seed=879: 0.930510314875
-Worst score for seed530: 0.880564603692
-Score: 0.9305103148751357
-Score with linear regression: 0.9055374592833876
-\end{lstlisting}
+\section*{Plots}
 
-Wie wir hier sehen, ist das Score auch sehr davon abhängig, wie man die Daten in Test und Train Sets
-splitet. Es ist deswegen so, weil einige Emails sehr untypische spam Emails bzw nicht spam Emails sind.
-Deswegen ist unser Score zwischen 88% und 93%.
+Wir haben das durchscnittliche Distanz zum Cluster (Mahalanobis) von allen Punkten abhängig von den Anzahl der Cluster.
+Damit die Graphik besser aussieht, haben wir scipy benutz, es existiert aber natürlich kein Clustering mit z.B. 2.3
+Cluster.
 
-Bei linearen Regression haben wir etwas schlechteres Ergebniss mit dem Datensatz bekommen (lineare Regression von
-scikit-learn wurde benutzt). Das ist deswegen so, wie in der Vorlesung erklärt, weil die Kovarianzmatritzen in dem
-Fall für Fischer Klassifizierung besser geeignet sind. Anders gesagt, die Streuung der Daten von je Klasse liegen
-teilweise othogonal zu einander.
+Auf dem Plot kann man die im Tutorium besprochene "Elbow" leider nicht sehen. Es war nur in einer früheren Version
+des Programms zu sehen, die ähnlicher zu K-Means war. Es liegt vermutlich daran, dass den Datensatz eine größe und
+leicht erkennbare Streuung der Daten hat. Nachdem man mehr als 2 Cluster versucht zu finden, werden viele Punkte
+außerhalb des Streuungsbereichs eines Clusters liegen, aber trotzdem zu dem Cluster gehören. Das ist so, da je mehr
+man die Daten splitted in mehreren Clusters, desto weniger wichtig wird die Streuung eines Clusters verglichen mit einem
+anderen. Naja, "long story short" wird denken 2 Clusters sind am bestens geeignet für diesen Datensatz.
 
-Aus performance-sichten haben wir nicht erkennbar bessere Ergebnisse bekommen (eine weitere lineare Methode, ist
-schnell genug).
+\includegraphics[width=\textwidth]{./plots/avrg_distance_for_k.png}
 
-Der Datensatz wurde im Jahre 1999 veröffentlicht, die Ergebnisse von 1998 zeigen circa 7% Fehlerrate, ähnlich wie unsere.
-Da wir aber deutlich später das entwickelt haben, denken wir nicht, dass unsere Ergebnisse ausreichend sind. Wie schon
-auf der Webseite des Datensatzes erleutert wurde, sind falsch als Spam erkannte Emails ganz schädlich und 7% Fehlerrate
-ist in dem Fall schon viel.
+\includegraphics[width=\textwidth]{./plots/plot_for_k_2.png}
 
-\section*{Plot}
+\includegraphics[width=\textwidth]{./plots/plot_for_k_3.png}
 
-Auf dem Plot haben wir die Dichtefunktion, projiziert auf dem Fischer-Vektor berechnet. Wie man sieht, überlappen
-schon die Klassen sich einigermaßen. Man könnte also auch bessere Ergebnisse bekommen, könnte aber auch viel
-schlimmer sein.
+\includegraphics[width=\textwidth]{./plots/plot_for_k_5.png}
 
+\includegraphics[width=\textwidth]{./plots/plot_for_k_6.png}
 
-\includegraphics[width=\textwidth]{./Figure_1.png}
+\includegraphics[width=\textwidth]{./plots/plot_for_k_20.png}
+
 
 \section*{Details zur Implementierung}
 
-In der Fit Methode haben wir beide Kovarianzmatritzen berechnet, als auch die Medians. Anhand der Formel von der
-Vorlesung haben wir dann unser Fischer Vektor berechnet. Nachdem, haben wir den Mittelpunkt beider Zentren auf dem
-Fischer-Vektor projiziert, damit wir dem später für die Klassifizierung benutzen können.
+Interessant für die Implementierung sind wahrscheinlich die Berechnung von dem Abstand und die Entscheidung,
+wann der Algorithmus eigentlich fertig ist.
+
+
+Mahalanobis Abstand - wir könnten uns hier den Wurzel sparen, so haben wir aber deutlich präziseren
+durchschnittlichen Abstand bekommen, der besser zu plotten war. Da sonst die Großteil der Implementierung
+vektorisiert ist, hatten wir nicht zu viele Sorgen wegen Performance. Sehr interessant ist es eigentlich nicht,
+nur die Formel aus der Vorlesung..
 
 \begin{lstlisting}[style=py]
-    def fit(self, X_train, y_train):
-        X_a, X_b = FisherClassifier.split_in_classes(X_train, y_train)
-        cov_mat_a = np.cov(X_a, rowvar=False, bias=True)
-        cov_mat_b = np.cov(X_b, rowvar=False, bias=True)
-        center_a = np.array(X_a, dtype=np.float64).mean(0)
-        center_b = np.array(X_b, dtype=np.float64).mean(0)
-
-        alpha = np.linalg.pinv(cov_mat_a + cov_mat_b).dot(center_a - center_b)
-        alpha_normalized = alpha / np.linalg.norm(alpha)
-        self.alpha = alpha_normalized
-
-        # to determine whether a point belongs to class a or class b we need a threshold
-        # on the 1 dimensional space. This one is the projected point between the 2 centers
-        self.threshold = self.project_point((center_a + center_b) / 2)
-
-        self.plot_probability_distribution(center_a, center_b, X_a, X_b)
-
+    def get_distance_mahalanobis_to_cluster(self, x, i_cluster):
+        # the square root could be removed, but helps for better plotting
+        return math.sqrt((x - self.cluster_centers[i_cluster]).dot(
+            self.inv_covariances_per_cluster[i_cluster]).dot((x - self.cluster_centers[i_cluster]).T))
 \end{lstlisting}
 
-Die eigentliche Klassifizierung ist ganz simpel. Wir projizieren das neue Punkt auf dem Fischer-Vektor und schauen,
-ob es vor oder nach unser in Fit definierten Threshold ist.
 
+
+Cluster Zentren berechnen, vektorisiert
 \begin{lstlisting}[style=py]
-    def predict_single(self, x):
-        # project x into alpha (AKA Fisher's vector)
-        projected = self.project_point(x)
-        return projected < self.threshold
+    def calculate_cluster_centers(self):
+        get_cluster_centers = np.vectorize(lambda x, points_per_center: points_per_center[x].mean(0),
+                                           signature='(),(m)->(n)')
+        self.cluster_centers = get_cluster_centers(self.cluster_indexes, self.points_per_cluster)
 \end{lstlisting}
 
-Die ganze Plot Funktionalität ist nicht so interessant, außer 2 relevante Teile. Wir haben die folgende Funktion
-benutzt, um die Dichtefunktion zu berechnen (da bei Fischer Normalverteilung eine Voraussetzung ist)
 
+Berechnung von Kovarianzmatrizen - dafür haben wir Numpy benutzt, interessant es aber der Fall, wenn wir nicht genug
+Punkte haben. Dann nehmen wir bloß die Identitätsmatrix. "again" steht im Kommentare, da wir bei der Initialisierung
+auch die Identitätsmatrix nehmen.
 \begin{lstlisting}[style=py]
-@staticmethod
-    def get_density_function(center, covariance):
-        return lambda x: math.e ** (
-            (-1/2) * ((x - center) / covariance) ** 2
-        ) / (covariance * math.sqrt((2*math.pi)))
+    def calculate_covariances(self):
+        # if we only have the center in our cluster (empty cluster) then just use the identity
+        # matrix as covariance matrix again
+        get_covariances = np.vectorize(lambda x, points_for_cluster: np.cov(points_for_cluster[x],
+                                        rowvar=False, bias=True) if len(points_for_cluster[x]) > 1 else
+                                        np.identity(len(points_for_cluster[x][0])), signature='(),(m)->(n,n)')
+        self.covariances_per_cluster = get_covariances(self.cluster_indexes, self.points_per_cluster)
+        self.inv_covariances_per_cluster = np.vectorize(lambda x: np.linalg.pinv(x),
+                                                        signature='(m,n)->(m,n)')(self.covariances_per_cluster)
 \end{lstlisting}
 
-Dabei brauchen wir aber die Kovarianz. Die wird von alle projizierten Punkten so berechnet.
 
+"Main" Methode - wir haben hier anhand von Flags zwie Vorgehensweisen implementiert. Entweder terminiert man,
+wenn die Clusterzentren sich nicht so viel bewegen, oder falls man 1. schlechtere Ergebnisse bekommt oder 2.
+ein Wunschergebniss erreicht hat. In beiden Implementierungen gibt es eine maximale Anzahl von Iterationen (30, vermutlich
+wäre 10 besser, aber... ^^)
 \begin{lstlisting}[style=py]
-@staticmethod
-    def get_covariance_for_projected(points, center):
-        vectorized_sq_distances_sum = np.vectorize(lambda x, m: (x - m)**2)
-        square_distances_sum = np.sum(vectorized_sq_distances_sum(points, center))
-        return math.sqrt(square_distances_sum / len(points))
+    def apply_expectation_maximization(self, k=0):
+        if VERBOSE:
+            print('iteration: {}'.format(k))
+        old_centers = np.copy(self.cluster_centers)
+        old_distance = np.copy(self.mean_distance)
+        self.reset_points_per_cluster()
+        self.assign_points_to_clusters()
+        self.calculate_cluster_centers()
+        self.calculate_covariances()
+        self.update_mean_distance_to_cluster_centers()
+
+        # for some reason old_distance is None or old_distance > ...
+        # was throwing errors cannot compare NoneType with int
+        # therefore the less readable not old_distance :X
+
+        # but basically, if judging on distance for when to stop,
+        # if the average distance gets worse, we reach the max amount of iterations or we reach our desired
+        # threshold, stop
+        if USE_DISTANCE_THRESHOLD:
+            if (self.mean_distance > DISTANCE_THRESHOLD and
+                        k < self.max_iterations and (not old_distance or old_distance > self.mean_distance)):
+                self.apply_expectation_maximization(k + 1)
+
+        # other method to determine when to stop is by simply checking if the cluster centers still move enough
+        elif abs((old_centers - self.cluster_centers).sum()) > MOVEMENT_THRESHOLD and k < self.max_iterations:
+            self.apply_expectation_maximization(k + 1)
 \end{lstlisting}
 
-\section*{Code in FisherClassifier.py}
 
+\section*{Vollständiges Code zu Expectation Maximization}
 \begin{lstlisting}[style=py]
-from Classifier import Classifier
-from Parser import get_data_set
+from Parser import parse_data
 import numpy as np
-from sklearn.linear_model import LinearRegression
-import math
+from Helpers import save_plot, plot_covariance
 from random import random
 import matplotlib.pyplot as plt
-from scipy.stats import multivariate_normal
+import matplotlib.cm as cm
+from scipy.interpolate import spline
+import random
+import math
+
+CHOOSE_INITIAL_CENTERS_RANDOMLY = True
+USE_DISTANCE_THRESHOLD = True
+MOVEMENT_THRESHOLD = 0.002
+DISTANCE_THRESHOLD = 0.01
+
+VERBOSE = False
+PLOT_MEAN_FOR_CLUSTERS_COUNT = True
+PLOT_CLUSTERING_FOR_SOME_K = True
+SAVE_PLOTS = True
 
 
-class FisherClassifier(Classifier):
-    def __init__(self, Ximport csv
-import numpy as np
-import os
-from sklearn.model_selection import train_test_split
-
-
-def parse_data():
-    file_name = os.path.join(os.path.dirname(__file__), './Dataset/spambase.data')
-    csv_file = open(file_name, 'rt')
-    reader = csv.reader(csv_file, delimiter=',', quoting=csv.QUOTE_NONE)
-    data = []
-
-    for row in reader:
-        filtered = list(filter(lambda x: x != '', row))
-        data.append(list(map(lambda x: float(x), filtered)))
-
-    return data
-
-
-def get_points_and_labels_from_data(data):
-    points = np.array(list(map(lambda x: x[:-1], data)), dtype=np.float64)
-    labels = np.array(list(map(lambda x: int(x[-1]), data)))
-
-    return points, labels
-
-
-def get_data_set(seed):
-    data = parse_data()
-    X, y = get_points_and_labels_from_data(data)
-    # for determined results we use a seed for random_state, so that data is always split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2,
-                                                        random_state=seed)
-
-    return X_train, X_test, y_train, y_test
-_train, y_train):
-        self.alpha = None
-        self.threshold = None
-        self.fit(X_train, y_train)
-
+class ExpectationMaximization:
     @staticmethod
-    def split_in_classes(X_train, y_train):
-        split_X = ([], [])
+    def get_initial_centers_from_data_set(data, k):
+        if CHOOSE_INITIAL_CENTERS_RANDOMLY:
+            random.seed(8)
+            return np.array(random.choices(data, k=k), dtype=np.float64)
 
-        for idx, x in enumerate(X_train):
-            current_label = y_train[idx]
-            split_X[current_label].append(x)
+        min_point = data.min(0)
+        max_point = data.max(0)
+        centers = []
 
-        return split_X
+        for i in range(k):
+            centers.append(min_point + (max_point - min_point) / k)
 
-    @staticmethod
-    def get_density_function(center, covariance):
-        return lambda x: math.e ** (
-            (-1/2) * ((x - center) / covariance) ** 2
-        ) / (covariance * math.sqrt((2*math.pi)))
+        return centers
 
-    @staticmethod
-    def get_covariance_for_projected(points, center):
-        vectorized_sq_distances_sum = np.vectorize(lambda x, m: (x - m)**2)
-        square_distances_sum = np.sum(vectorized_sq_distances_sum(points, center))
-        return math.sqrt(square_distances_sum / len(points))
+    def __init__(self):
+        self.data = None
+        self.k_clusters = None
+        self.sigma = None
+        self.cluster_centers = None
+        self.points_per_cluster = None
+        self.inv_covariances_per_cluster = []
+        self.covariances_per_cluster = []
+        self.cluster_indexes = None
+        self.last_diff = None
+        self.mean_distance = None
+        self.max_iterations = None
 
-    def plot_class(self, points, center):
-        projected_center = self.project_point(center)
-        projected_points = list(map(lambda x: self.project_point(x), points))
-        covariance = FisherClassifier.get_covariance_for_projected(projected_points, projected_center)
-        density_a = FisherClassifier.get_density_function(projected_center, covariance)
-        plot_distance = 5000
-        y_of_plot = [density_a(float(x) / 100) for x in range(-plot_distance, plot_distance)]
-        x_to_plot = [float(x) / 100 for x in range(-plot_distance, plot_distance)]
-        first_decent = None
-        last_decent = None
+    def reset_points_per_cluster(self):
+        self.points_per_cluster = [[x] for x in self.cluster_centers]
 
-        for idx, y in enumerate(y_of_plot):
-            if y > 0.01 and first_decent is None:
-                first_decent = idx
-            elif y <= 0.01 and first_decent is not None:
-                last_decent = idx
-                break
+    def cluster(self, data, k_clusters, max_iterations=30):
+        self.data = data
+        self.mean_distance = None
+        self.last_diff = None
+        self.k_clusters = k_clusters
+        self.cluster_indexes = [x for x in range(self.k_clusters)]
+        self.cluster_centers = ExpectationMaximization.get_initial_centers_from_data_set(data, k_clusters)
+        self.covariances_per_cluster = [[np.identity(len(x))] for x in self.cluster_centers]
+        self.inv_covariances_per_cluster = self.covariances_per_cluster
+        self.reset_points_per_cluster()
+        self.max_iterations = max_iterations
+        self.apply_expectation_maximization()
 
-        beauty_margin = (last_decent - first_decent)
-        start = int(first_decent - beauty_margin/2)
-        end = int(last_decent + beauty_margin/2)
+    def apply_expectation_maximization(self, k=0):
+        if VERBOSE:
+            print('iteration: {}'.format(k))
+        old_centers = np.copy(self.cluster_centers)
+        old_distance = np.copy(self.mean_distance)
+        self.reset_points_per_cluster()
+        self.assign_points_to_clusters()
+        self.calculate_cluster_centers()
+        self.calculate_covariances()
+        self.update_mean_distance_to_cluster_centers()
 
-        plt.plot(x_to_plot[start:end], y_of_plot[start:end])
+        # for some reason old_distance is None or old_distance > ...
+        # was throwing errors cannot compare NoneType with int
+        # therefore the less readable not old_distance :X
 
-    def plot_probability_distribution(self, center_a, center_b, points_a, points_b):
-        self.plot_class(points_a, center_a)
-        self.plot_class(points_b, center_b)
+        # but basically, if judging on distance for when to stop,
+        # if the average distance gets worse, we reach the max amount of iterations or we reach our desired
+        # threshold, stop
+        if USE_DISTANCE_THRESHOLD:
+            if (self.mean_distance > DISTANCE_THRESHOLD and
+                        k < self.max_iterations and (not old_distance or old_distance > self.mean_distance)):
+                self.apply_expectation_maximization(k + 1)
+
+        # other method to determine when to stop is by simply checking if the cluster centers still move enough
+        elif abs((old_centers - self.cluster_centers).sum()) > MOVEMENT_THRESHOLD and k < self.max_iterations:
+            self.apply_expectation_maximization(k + 1)
+
+    def update_mean_distance_to_cluster_centers(self):
+        # 1. get distance for every point in each cluster in a single array
+        # 2. get mean of that
+
+        dis_for_x_in_k = np.vectorize(lambda x, i: self.get_distance_mahalanobis_to_cluster(x, i),
+                                      signature='(m),()->()')
+
+        # didn't manage to vectorize this one ;/ somehow, numpy doens't like jagged arrays
+        distances_for_points = list(map(lambda x: dis_for_x_in_k(self.points_per_cluster[x], x),
+                                        self.cluster_indexes))
+
+        flattened_distances = []
+        for cluster_distances in distances_for_points:
+            flattened_distances = flattened_distances + list(cluster_distances)
+
+        self.mean_distance = np.array(flattened_distances, dtype=np.float64).mean()
+
+        if VERBOSE:
+            print('Average Mahalanobis\' distance to cluster center: {}'.format(self.mean_distance))
+
+    def assign_points_to_clusters(self):
+        assign_points_to_clusters = np.vectorize(lambda x: self.assign_point_to_cluster(x),
+                                                 signature='(m)->()')
+        assign_points_to_clusters(self.data)
+
+        for idx, list in enumerate(self.points_per_cluster):
+            self.points_per_cluster[idx] = np.array(self.points_per_cluster[idx])
+
+    def assign_point_to_cluster(self, point):
+        distances_to_clusters = [self.get_distance_mahalanobis_to_cluster(point, i) for i in self.cluster_indexes]
+        closest_cluster_idx = np.argmin(distances_to_clusters)
+        self.points_per_cluster[closest_cluster_idx].append(point)
+
+    def get_distance_mahalanobis_to_cluster(self, x, i_cluster):
+        # the square root could be removed, but helps for better plotting
+        return math.sqrt((x - self.cluster_centers[i_cluster]).dot(
+            self.inv_covariances_per_cluster[i_cluster]).dot((x - self.cluster_centers[i_cluster]).T))
+
+    def calculate_cluster_centers(self):
+        get_cluster_centers = np.vectorize(lambda x, points_per_center: points_per_center[x].mean(0),
+                                           signature='(),(m)->(n)')
+        self.cluster_centers = get_cluster_centers(self.cluster_indexes, self.points_per_cluster)
+
+    def calculate_covariances(self):
+        # if we only have the center in our cluster (empty cluster) then just use the identity
+        # matrix as covariance matrix again
+        get_covariances = np.vectorize(lambda x, points_for_cluster: np.cov(points_for_cluster[x],
+                                        rowvar=False, bias=True) if len(points_for_cluster[x]) > 1 else
+                                        np.identity(len(points_for_cluster[x][0])), signature='(),(m)->(n,n)')
+        self.covariances_per_cluster = get_covariances(self.cluster_indexes, self.points_per_cluster)
+        self.inv_covariances_per_cluster = np.vectorize(lambda x: np.linalg.pinv(x),
+                                                        signature='(m,n)->(m,n)')(self.covariances_per_cluster)
+
+
+data = parse_data()
+em = ExpectationMaximization()
+
+# Depending on the cluster centers that are chosen, results differ
+# Though mostly between 3 and 4 clusters fit best for the current data set
+if PLOT_MEAN_FOR_CLUSTERS_COUNT:
+    cluster_count_experiments = [x for x in range(2, 20)]
+    cluster_count_mean_distance_results = []
+
+    for cluster_count in cluster_count_experiments:
+        em.cluster(data, cluster_count)
+        cluster_count_mean_distance_results.append(np.copy(em.mean_distance))
+
+        if VERBOSE:
+            for idx, points in enumerate(em.points_per_cluster):
+                print('Points in cluster #{}: {}'.format(idx, len(points)))
+
+    x = np.linspace(min(cluster_count_experiments), max(cluster_count_experiments), 300)
+    y = spline(cluster_count_experiments, cluster_count_mean_distance_results, x)
+
+    figure = plt.figure()
+    plt.plot(x, y)
+    plt.xlabel('Amount of clusters')
+    plt.ylabel('Average Mahalanobis\' distance')
+
+    if SAVE_PLOTS:
+        save_plot(figure, './plots/avrg_distance_for_k.png')
+    else:
         plt.show()
 
-    def project_point(self, x):
-        return x.dot(self.alpha)
+if PLOT_CLUSTERING_FOR_SOME_K:
+    plot_for_k_s = [2,3,5,6, 20]
+    # plot_for_k_s = [2]
 
-    def fit(self, X_train, y_train):
-        X_a, X_b = FisherClassifier.split_in_classes(X_train, y_train)
-        cov_mat_a = np.cov(X_a, rowvar=False, bias=True)
-        cov_mat_b = np.cov(X_b, rowvar=False, bias=True)
-        center_a = np.array(X_a, dtype=np.float64).mean(0)
-        center_b = np.array(X_b, dtype=np.float64).mean(0)
+    for k in plot_for_k_s:
+        em.cluster(data, k)
+        colors = cm.rainbow(np.linspace(0, 1, k))
 
-        alpha = np.linalg.pinv(cov_mat_a + cov_mat_b).dot(center_a - center_b)
-        alpha_normalized = alpha / np.linalg.norm(alpha)
-        self.alpha = alpha_normalized
+        fig = plt.figure()
+        ax1 = fig.add_subplot(111)
 
-        # to determine whether a point belongs to class a or class b we need a threshold
-        # on the 1 dimensional space. This one is the projected point between the 2 centers
-        self.threshold = self.project_point((center_a + center_b) / 2)
+        for cl_idx in em.cluster_indexes:
+            X = em.points_per_cluster[cl_idx]
+            x, y = zip(*X)
+            # ax1.figure(figsize=(15, 10))
+            ax1.scatter(x, y, edgecolors="black", c=colors[cl_idx])
 
-        self.plot_probability_distribution(center_a, center_b, X_a, X_b)
+            center = em.cluster_centers[cl_idx]
+            covariance = em.covariances_per_cluster[cl_idx]
+            plot_covariance(ax1, center[0], center[1], covariance)
 
-    def predict(self, X):
-        return list(map(lambda x: self.predict_single(x), X))
-
-    def predict_single(self, x):
-        # project x into alpha (AKA Fisher's vector)
-        projected = self.project_point(x)
-        return projected < self.threshold
+        if SAVE_PLOTS:
+            save_plot(fig, './plots/plot_for_k_{}.png'.format(k))
+        else:
+            plt.show()
 
 
-# max_score = 0
-# min_score = 100
-# best_seed = 0
-# worst_seed = 0
 
-# for i in range(1000):
-#     X_train, X_test, y_train, y_test = get_data_set(i)
-#     classifier = FisherClassifier(X_train, y_train)
-#     score = classifier.score(X_test, y_test)
-#     if score > max_score:
-#         max_score = score
-#         best_seed = i
-#     if score < min_score:
-#         min_score = score
-#         worst_seed = i
-#
-# print('Best score for seed={}: {}'.format(best_seed, max_score))
-# print('Worst score for seed{}: {}'.format(worst_seed, min_score))
 
-X_train, X_test, y_train, y_test = get_data_set(879)
-classifier = FisherClassifier(X_train, y_train)
-score = classifier.score(X_test, y_test)
-print('Score: {}'.format(classifier.score(X_test, y_test)))
+# Parser.py
 
-lm = LinearRegression()
-y_train_modified = list(map(lambda x: 1 if x == 1 else -1, y_train))
-lm.fit(X_train, y_train_modified)
-prediction = np.array(list(map(lambda x: 1 if x > 0 else 0, lm.predict(X_test))), dtype=np.float64)
-score = np.mean(prediction == np.array(y_test, dtype=np.float64))
-print('Score with linear regression: {}'.format(score))
-
-\end{lstlisting}
-
-\section*{Code in Parser.py}
-
-\begin{lstlisting}[style=py]
 import csv
 import numpy as np
 import os
@@ -289,36 +347,82 @@ from sklearn.model_selection import train_test_split
 
 
 def parse_data():
-    file_name = os.path.join(os.path.dirname(__file__), './Dataset/spambase.data')
+    file_name = os.path.join(os.path.dirname(__file__), './Dataset/2d-em.csv')
     csv_file = open(file_name, 'rt')
     reader = csv.reader(csv_file, delimiter=',', quoting=csv.QUOTE_NONE)
-    data = []
 
-    for row in reader:
-        filtered = list(filter(lambda x: x != '', row))
-        data.append(list(map(lambda x: float(x), filtered)))
-
-    return data
+    return np.array([row for row in reader], dtype=np.float64)
 
 
-def get_points_and_labels_from_data(data):
-    points = np.array(list(map(lambda x: x[:-1], data)), dtype=np.float64)
-    labels = np.array(list(map(lambda x: int(x[-1]), data)))
-
-    return points, labels
 
 
-def get_data_set(seed):
-    data = parse_data()
-    X, y = get_points_and_labels_from_data(data)
-    # for determined results we use a seed for random_state, so that data is always split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2,
-                                                        random_state=seed)
 
-    return X_train, X_test, y_train, y_test
+# Helpers.py
+
+import os
+import pandas as pd
+from numpy import pi, sin, cos
+import numpy as np
+import matplotlib.pyplot as plt
+
+RGB_BLACK = [0, 0, 0]
+
+
+def save_plot(fig, path):
+    fig.savefig(os.path.join(os.path.dirname(__file__), path))
+
+
+def plot_covariance(ax1, x_initial, y_initial, cov):
+    num_points = 1000
+    radius = 1.5  # adjusted radius, seems more correct this way
+
+    # plot a circle
+    arcs = np.linspace(0, 2 * pi, num_points)
+    x = radius * sin(arcs)
+    y = radius * cos(arcs)
+
+    # stretch it according to the covariance matrix
+    xy = np.array(list(zip(x, y)))
+    x, y = zip(*xy.dot(cov))
+
+    # move it in the space so it's center is above the cluster's center
+    x = x + x_initial
+    y = y + y_initial
+
+    ax1.scatter(x, y, c=RGB_BLACK, s=10)  # plot covariance
+    ax1.scatter([x_initial], [y_initial], c=RGB_BLACK, s=50)  # plot center
 
 \end{lstlisting}
 
+
+
+\begin{lstlisting}[style=py]
+
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[style=py]
+
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[style=py]
+
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[style=py]
+
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[style=py]
+
+\end{lstlisting}
 
 
 % /////////////////////// END DOKUMENT /////////////////////////
