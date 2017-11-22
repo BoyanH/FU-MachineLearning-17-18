@@ -30,3 +30,12 @@ def plot_covariance(ax1, x_initial, y_initial, cov):
 
     ax1.scatter(x, y, c=RGB_BLACK, s=10)  # plot covariance
     ax1.scatter([x_initial], [y_initial], c=RGB_BLACK, s=50)  # plot center
+
+def show_img(img, save=False):
+    figure = plt.figure(figsize=(8, 8))
+    plt.imshow(img)
+
+    if save:
+        save_plot(figure, './plots/compressed.png')
+    else:
+        plt.show()

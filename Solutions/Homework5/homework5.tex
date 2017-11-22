@@ -38,17 +38,17 @@ außerhalb des Streuungsbereichs eines Clusters liegen, aber trotzdem zu dem Clu
 man die Daten splitted in mehreren Clusters, desto weniger wichtig wird die Streuung eines Clusters verglichen mit einem
 anderen. Naja, "long story short" wird denken 2 Clusters sind am bestens geeignet für diesen Datensatz.
 
-\includegraphics[width=\textwidth]{./plots/avrg_distance_for_k.png}
+\includegraphics[height=8cm]{./plots/avrg_distance_for_k.png}
 
-\includegraphics[width=\textwidth]{./plots/plot_for_k_2.png}
+\includegraphics[height=8cm]{./plots/plot_for_k_2.png}
 
-\includegraphics[width=\textwidth]{./plots/plot_for_k_3.png}
+\includegraphics[height=8cm]{./plots/plot_for_k_3.png}
 
-\includegraphics[width=\textwidth]{./plots/plot_for_k_5.png}
+\includegraphics[height=8cm]{./plots/plot_for_k_5.png}
 
-\includegraphics[width=\textwidth]{./plots/plot_for_k_6.png}
+\includegraphics[height=8cm]{./plots/plot_for_k_6.png}
 
-\includegraphics[width=\textwidth]{./plots/plot_for_k_20.png}
+\includegraphics[height=8cm]{./plots/plot_for_k_20.png}
 
 
 \section*{Details zur Implementierung}
@@ -128,6 +128,25 @@ wäre 10 besser, aber... ^^)
         elif abs((old_centers - self.cluster_centers).sum()) > MOVEMENT_THRESHOLD and k < self.max_iterations:
             self.apply_expectation_maximization(k + 1)
 \end{lstlisting}
+
+\section*{Bildkompression}
+Nicht sicher was ich sagen soll, außer es ist seeeehr langsam (nicht so viel wie erste Hausaufgabe mit k-NN, aber die
+war auch nicht vektorisiert). Ich habe nur 30 Farben genommen, es hat aber ziemlich gut geklappt auf dem Bild. Also wenn
+man nur die Ergebnisse analysiert, ist es gar nicht so schlecht, leider aber zu wenig performant.
+
+\section*{Before \& After}
+
+\includegraphics[height=8cm]{./Dataset/image.png}
+
+\includegraphics[height=8cm]{./plots/compressed.png}
+
+\section*{Erklärung Bildkompression}
+
+Ich werde mir hier lange Erklärungen sparen, wir haben EM benutzt, um alle Pixel (damit Farben) in dem Bild zu Clustern.
+So wird z.B. nur die mittlere und häugiste Grüne genommen von allen Grünen (bei uns nicht genau, bei 30 Farben muss es
+mindestens 2 Grüne geben (war Beispiel, es gibt in dem Bild gar nicht grün ^^)). Danach haben wir je Pixel mit
+der am nahsten zu der Farbe liegenden Cluster ausgetauscht. Vollständiges Code am Ende.
+
 
 
 \section*{Vollständiges Code zu Expectation Maximization}
@@ -392,37 +411,68 @@ def plot_covariance(ax1, x_initial, y_initial, cov):
     ax1.scatter(x, y, c=RGB_BLACK, s=10)  # plot covariance
     ax1.scatter([x_initial], [y_initial], c=RGB_BLACK, s=50)  # plot center
 
+
+def show_img(img, save=False):
+    figure = plt.figure(figsize=(8, 8))
+    plt.imshow(img)
+
+    if save:
+        save_plot(figure, './plots/compressed.png')
+    else:
+        plt.show()
+
 \end{lstlisting}
 
-
+\section*{Vollständiges Code zu Bildkompression}
 
 \begin{lstlisting}[style=py]
+import numpy as np
+import numpy as np
+import os
+import matplotlib.image as mpimg
+from Helpers import show_img
+from ExpectationMaximization import ExpectationMaximization
+import cv2
+
+class ImageCompression(ExpectationMaximization):
+    def compress(self, img, colours):
+        try:
+            reshaped = img.reshape(img.shape[0] * img.shape[1], 4)  # in my case it was 4, rgb + alpha
+        except:
+            reshaped = img.reshape(img.shape[0] * img.shape[1], 3)  # could be 3 as well, who cares
+
+        self.cluster(reshaped, colours)
+
+        for r_idx, row in enumerate(img):
+            for c_idx, pixel in enumerate(row):
+                img[r_idx][c_idx] = self.get_color(pixel)
+
+        return img
+
+    def get_color(self, pixel):
+        distances_to_clusters = [self.get_distance_mahalanobis_to_cluster(pixel, i) for i in self.cluster_indexes]
+        closest_cluster_idx = np.argmin(distances_to_clusters)
+
+        return self.cluster_centers[closest_cluster_idx]
+
+    # performance is important here, overwrite to remove math.sqrt
+    def get_distance_mahalanobis_to_cluster(self, x, i_cluster):
+        # the square root could be removed, but helps for better plotting
+        return (x - self.cluster_centers[i_cluster]).dot(
+            self.inv_covariances_per_cluster[i_cluster]).dot((x - self.cluster_centers[i_cluster]).T)
+
+
+
+
+ic = ImageCompression()
+img = mpimg.imread('./Dataset/image.png')
+show_img(img)
+
+compressed = ic.compress(img, 30)  # 30 colors
+show_img(compressed, True) # True for save
 
 \end{lstlisting}
 
-
-
-\begin{lstlisting}[style=py]
-
-\end{lstlisting}
-
-
-
-\begin{lstlisting}[style=py]
-
-\end{lstlisting}
-
-
-
-\begin{lstlisting}[style=py]
-
-\end{lstlisting}
-
-
-
-\begin{lstlisting}[style=py]
-
-\end{lstlisting}
 
 
 % /////////////////////// END DOKUMENT /////////////////////////
