@@ -1,4 +1,10 @@
-Best score for seed=879: 0.930510314875
-Worst score for seed530: 0.880564603692
-Score: 0.9305103148751357
-Score with linear regression: 0.9055374592833876
+Smallest error for Iris-virginica vs Iris-setosa: 0.0deg
+Score Iris-virginica vs Iris-setosa: 1.0
+Score Iris-virginica vs Iris-setosa on train data: 1.0
+Smallest error for Iris-setosa vs Iris-versicolor: 0.0deg
+Score Iris-setosa vs Iris-versicolor: 1.0
+Smallest error for Iris-virginica vs Iris-versicolor: 2.0deg
+Score Iris-virginica vs Iris-versicolor: 1.0
+Score Iris-virginica vs Iris-versicolor on train data: 0.9666666666666667
+Score of LDA Iris-virginica vs Iris-setosa: 1.0
+Score of LDA Iris-virginica vs Iris-setosa on train data: 0.9666666666666667
