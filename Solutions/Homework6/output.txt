@@ -1,9 +1,9 @@
-Smallest error for Iris-virginica vs Iris-setosa: 0.0deg
+Smallest error for Iris-virginica vs Iris-setosa: 0.0 mistaken probes
 Score Iris-virginica vs Iris-setosa: 1.0
 Score Iris-virginica vs Iris-setosa on train data: 1.0
-Smallest error for Iris-setosa vs Iris-versicolor: 0.0deg
+Smallest error for Iris-setosa vs Iris-versicolor: 0.0 mistaken probes
 Score Iris-setosa vs Iris-versicolor: 1.0
-Smallest error for Iris-virginica vs Iris-versicolor: 2.0deg
+Smallest error for Iris-virginica vs Iris-versicolor: 2.0 mistaken probes
 Score Iris-virginica vs Iris-versicolor: 1.0
 Score Iris-virginica vs Iris-versicolor on train data: 0.9666666666666667
 Score of LDA Iris-virginica vs Iris-setosa: 1.0

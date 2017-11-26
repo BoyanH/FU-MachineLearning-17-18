@@ -53,7 +53,7 @@ class PerceptronClassifier(Classifier):
             error = (self.predict_single_normalized(x) - yi)
             assert(error == 0 or least_error > 0)
 
-        print('Smallest error for {} vs {}: {}deg'.format(self.class_a, self.class_b, least_error))
+        print('Smallest error for {} vs {}: {} mistaken probes'.format(self.class_a, self.class_b, least_error))
 
     @staticmethod
     def get_error(w_new, w):
