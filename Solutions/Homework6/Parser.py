@@ -11,7 +11,7 @@ def parse_data():
 
 
 def get_points_and_labels_from_data(data):
-    points = data[:,:-1].astype('float')
+    points = np.array(data[:,:-1], dtype=np.float64)
     labels = data[:,-1]
 
     return points, labels
@@ -27,7 +27,7 @@ def get_data_set(seed):
     data = parse_data()
     X, y = get_points_and_labels_from_data(data)
     # for determined results we use a seed for random_state, so that data is always split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2,
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.9, test_size=0.1,
                                                         random_state=seed)
 
     return X_train, X_test, y_train, y_test
