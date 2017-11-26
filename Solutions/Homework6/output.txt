@@ -1,0 +1,4 @@
+Best score for seed=879: 0.930510314875
+Worst score for seed530: 0.880564603692
+Score: 0.9305103148751357
+Score with linear regression: 0.9055374592833876
