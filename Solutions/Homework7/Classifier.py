@@ -6,7 +6,7 @@ class Classifier:
         return np.mean(predictions == y)
     
     def confusion_matrix(self, X, y):
-        size = 10 # hardcoded here
+        size = 2 # hardcoded here
         predicted = self.predict(X)
         
         results = np.zeros((size, size), dtype=np.int32)

@@ -101,7 +101,7 @@ class LogisticRegression(Classifier):
             return 0
 
     def predict_single(self, x):
-        return 1 if self.get_probability(x, 1) > self.get_probability(x, 0) else 0
+        return 1 if self.get_probability(x, 1) > 0.5 else 0
 
     def get_log_likelihood(self, X, y):
         weighted = X.dot(self.beta)
