@@ -1,20 +1,18 @@
 from Classifier import Classifier
-from Parser import get_data_set
 import numpy as np
 import math
 from matplotlib import pyplot as plt
-from sklearn.linear_model import LogisticRegression as LRSKL
 import os
 
 
 class LogisticRegression(Classifier):
     # def __init__(self, X_train, y_train, learn_rate=1e-3):
-    def __init__(self, X_train, y_train, learn_rate=1e-3):
+    def __init__(self, X_train, y_train, learn_rate=1e-3, iterations=40000, plot=False):
         self.beta = None
         self.transformation_vector = None
         self.learn_rate = learn_rate
         X, y = self.transform(X_train, y_train)
-        self.fit(X, y)
+        self.fit(X, y, iterations, plot)
 
     @staticmethod
     def sigmoid(weighted):
@@ -36,7 +34,7 @@ class LogisticRegression(Classifier):
 
         return X, y
 
-    def fit(self, X, y):
+    def fit(self, X, y, iterations, plot):
         features_len = len(X[0])
         self.beta = np.zeros(features_len, dtype=np.float64)
         log_error_over_time = []
@@ -44,7 +42,7 @@ class LogisticRegression(Classifier):
         last_log_error = float('inf')
         current_learning_rate = self.learn_rate
 
-        for i in range(40000):
+        for i in range(iterations):
             weighted = X.dot(self.beta)
             probabilities = LogisticRegression.sigmoid(weighted)
             directions = y - probabilities
@@ -69,12 +67,15 @@ class LogisticRegression(Classifier):
 
                 last_log_error = current_log_error
                 last_beta = np.copy(self.beta)
-                log_error_over_time.append(current_log_error)
 
-        plt.ylabel('Absolute Log Likelihood')
-        plt.xlabel('Iterations')
-        plt.plot([i for i in range(0, 40000, 100)], log_error_over_time)
-        plt.savefig(os.path.join(os.path.dirname(__file__), 'll_over_time.png'))
+                if plot:
+                    log_error_over_time.append(current_log_error)
+
+        if plot:
+            plt.ylabel('Absolute Log Likelihood')
+            plt.xlabel('Iterations')
+            plt.plot([i for i in range(0, iterations, 100)], log_error_over_time)
+            plt.savefig(os.path.join(os.path.dirname(__file__), 'll_over_time.png'))
 
     def predict(self, X):
         X = X / self.transformation_vector
@@ -105,14 +106,3 @@ class LogisticRegression(Classifier):
     def get_log_likelihood(self, X, y):
         weighted = X.dot(self.beta)
         return np.sum(y * weighted - np.log(1 + np.exp(weighted)))
-
-X_train, X_test, y_train, y_test = get_data_set(1)
-lr = LogisticRegression(X_train, y_train)
-score = lr.score(X_test, y_test)
-print('Score: {}'.format(score))
-
-sklearn_lr = LRSKL()
-sklearn_lr.fit(X_train, y_train)
-predictions = sklearn_lr.predict(X_test)
-score_sklearn = np.mean(predictions == y_test)
-print('Score from sklearn: {}'.format(score_sklearn))
