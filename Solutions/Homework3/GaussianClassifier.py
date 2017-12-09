@@ -89,7 +89,7 @@ class GaussianClassifier(Classifier):
         return left_side * right_side
 
 train_data = parse_data_file('./Dataset/train')
-test_data = parse_data_file('./Dataset/test')
+test_data = parse_data_file('./Dataset/digits.data')
 
 three_vs_five = GaussianClassifier(train_data, [3,5])
 (three_vs_five_test_labels, three_vs_five_test_data) = get_labels_and_points_from_data(test_data, [3,5])
