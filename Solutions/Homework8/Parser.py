@@ -18,11 +18,25 @@ def get_points_and_labels_from_data(data, label_idx=0):
     return points, labels
 
 
-def get_data_set(file_name, sep=' ', label_idx=0, seed=1):
+def get_data_set(file_name, sep=' ', label_idx=0, seed=4):
     data = parse_data(file_name, sep)
     X, y = get_points_and_labels_from_data(data, label_idx)
     # for determined results we use a seed for random_state, so that data is always split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, test_size=0.2,
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, test_size=0.3,
                                                         random_state=seed)
 
     return X_train, X_test, y_train, y_test
+
+
+def extract_classes_from_data_set(X, y, classes):
+    labels_are_numbers = False
+
+    try:
+        a = int(y[0])
+        labels_are_numbers = True
+    except:
+        pass
+
+    is_from_classes = np.vectorize(lambda y: (int(y) if labels_are_numbers else y) in classes)
+    filter_arr = is_from_classes(y)
+    return X[filter_arr], y[filter_arr]
