@@ -1,30 +1,11 @@
 from PCA import PCA
-from matplotlib import pyplot as plt
+from Helpers import plot_multiple_images
 import numpy as np
 import math
 import glob
 import os
 import cv2
 
-
-image_shape = (16,16)
-
-
-def plot_eigenfaces(title, images, cols=5):
-    rows = math.ceil(len(images) / cols)
-    plt.figure(figsize=(8,8))
-    plt.suptitle(title, size=20)
-
-    for i, component in enumerate(images):
-        plt.subplot(rows, cols, i + 1)
-        component += abs(component.min())
-        component *= (1.0 / component.max())
-        image = np.reshape(component, (data_set_dimensions, data_set_dimensions))
-        plt.imshow(image, cmap=plt.cm.binary)
-        plt.xticks(())
-        plt.yticks(())
-
-    plt.show()
 
 def read_pgm(file_name):
     return cv2.imread(file_name, -1)
@@ -49,4 +30,4 @@ pca_eigenfaces.fit(data_set)
 data_set_dimensions = int(math.sqrt(len(data_set[0])))
 principal_components = pca_eigenfaces.principal_components
 
-plot_eigenfaces('Eigenfaces', principal_components)
+plot_multiple_images('Eigenfaces', principal_components, data_set_dimensions, fig_name='eigenfaces.png')
