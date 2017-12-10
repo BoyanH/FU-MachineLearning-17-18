@@ -1,5 +1,6 @@
 from Classifier import Classifier
 import numpy as np
+from scipy.interpolate import spline
 import math
 from matplotlib import pyplot as plt
 import os
@@ -10,6 +11,33 @@ class PCA(Classifier):
         self.transformation_matrix = None
         self.k = k
 
+    @staticmethod
+    def get_eig_values_sort_args(eig_values, k = None):
+        if k is None:
+            k = len(eig_values)
+
+        return np.flip(eig_values.argsort(), 0)[:k]
+
+    @staticmethod
+    def get_eig_vec_and_val(X):
+        covariance_matrix = np.cov(X.T)
+        # the covariance matrix is always symmetric, we don't need to bother any further
+        return np.linalg.eig(covariance_matrix)
+
+    @staticmethod
+    def get_sorted_eig_vec(X, k=None):
+        eig_values, eig_vectors = PCA.get_eig_vec_and_val(X)
+        sort_args = PCA.get_eig_values_sort_args(eig_values, k)
+
+        return eig_vectors[sort_args]
+
+    @staticmethod
+    def get_sorted_eig_values(X, k=None):
+        eig_values, eig_vectors = PCA.get_eig_vec_and_val(X)
+        sort_args = PCA.get_eig_values_sort_args(eig_values, k)
+
+        return eig_values[sort_args]
+
     def fit(self, X):
         '''
         Finds the largest k eigenvalues and their corresponding eigenvectors from the
@@ -18,13 +46,7 @@ class PCA(Classifier):
         the space defined by those eigenvectors and their corresponding eigenvalues
         '''
 
-        covariance_matrix = np.cov(X.T)
-        # as the covariance matrix is always symmetric, we can use eigh for more correctness
-        eig_values, eig_vectors = np.linalg.eig(covariance_matrix)
-
-        sorted_k_eig_values_args = np.flip(eig_values.argsort(), 0)[:self.k]  # sort descending
-        sorted_k_eig_vectors = eig_vectors[sorted_k_eig_values_args]
-
+        sorted_k_eig_vectors = PCA.get_sorted_eig_vec(X, self.k)
         self.transformation_matrix = sorted_k_eig_vectors.T
 
     def transform(self, X):
@@ -45,4 +67,24 @@ class PCA(Classifier):
         self.fit(X)
         return self.transform(X)
 
+    @staticmethod
+    def get_variance_of_data_points(X):
+        return np.var(X)
+
+    @staticmethod
+    def plot_variance_for_k(X, save_plot_name):
+        sorted_eig_values = PCA.get_sorted_eig_values(X)
+        total_variance = sorted_eig_values.sum()
+        variance_diffs = []
+        ks = np.arange(2, len(X[0]), 1)
+
+        for k in ks:
+            variance_diffs.append(abs(total_variance - sorted_eig_values[:k].sum()))
+
+        plt.plot(ks, variance_diffs)
+
+        if save_plot_name is not None:
+            plt.savefig(save_plot_name + '.png')
+        else:
+            plt.show()
 

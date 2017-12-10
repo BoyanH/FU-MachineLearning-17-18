@@ -8,6 +8,8 @@ pca = PCA(230)
 train_transformed = pca.fit_transform(X_train)
 test_transformed = pca.transform(X_test)
 
+PCA.plot_variance_for_k(X_train)
+
 prediction_non_transformed = LDA().fit(X_train, y_train).predict(X_test)
 score_non_transformed = np.mean(prediction_non_transformed == y_test)
 print('Score LDA without PCA: {}'.format(score_non_transformed))
