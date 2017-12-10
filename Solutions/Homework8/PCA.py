@@ -76,13 +76,9 @@ class PCA(Classifier):
     @staticmethod
     def plot_variance_for_k(X, save_plot_name=None):
         sorted_eig_values = PCA.get_sorted_eig_values(X)
-        print('got sorted eig_values')
         total_variance = sorted_eig_values.sum()
-        print('got total variance')
         ks = np.arange(2, len(X[0]), 1)
-        print('got ks')
 
-        print('calculating for each k')
         variance_diffs = np.vectorize(lambda k: abs(total_variance - sorted_eig_values[:k].sum()))(ks)
         # for k in ks:
         #     variance_diffs.append(abs(total_variance - sorted_eig_values[:k].sum()))
