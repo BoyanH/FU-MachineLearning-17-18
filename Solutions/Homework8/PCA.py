@@ -1,9 +1,6 @@
 from Classifier import Classifier
 import numpy as np
-from scipy.interpolate import spline
-import math
 from matplotlib import pyplot as plt
-import os
 
 
 class PCA(Classifier):
@@ -11,31 +8,33 @@ class PCA(Classifier):
         self.transformation_matrix = None
         self.k = k
         self.X_mean = None
+        self.principal_components = None
 
     @staticmethod
     def get_eig_values_sort_args(eig_values, k=None):
         if k is None:
             k = len(eig_values)
 
-        return np.flip(eig_values.argsort(), 0)[:k]
+        # reverse sorted, first k components
+        return eig_values.argsort()[::-1][:k]
 
     @staticmethod
     def get_eig_vec_and_val(X):
-        covariance_matrix = np.cov(X.T)
+        covariance_matrix = np.cov(X, rowvar=False)
         # the covariance matrix is always symmetric, we don't need to bother any further
-        return np.linalg.eig(covariance_matrix)
+        return np.linalg.eigh(covariance_matrix)
 
     @staticmethod
     def get_sorted_eig_vec(X, k=None):
         eig_values, eig_vectors = PCA.get_eig_vec_and_val(X)
         sort_args = PCA.get_eig_values_sort_args(eig_values, k)
 
-        return eig_vectors[sort_args]
+        return eig_vectors[:,sort_args].T
 
     @staticmethod
     def get_sorted_eig_values(X, k=None):
         eig_values, eig_vectors = PCA.get_eig_vec_and_val(X)
-        # assert(np.all(eig_values >= 0))
+        # assert(np.all(eig_values >= 0))  # yep, all good
         sort_args = PCA.get_eig_values_sort_args(eig_values, k)
 
         return eig_values[sort_args]
@@ -48,9 +47,11 @@ class PCA(Classifier):
         the space defined by those eigenvectors and their corresponding eigenvalues
         '''
 
+        # center data set
         self.X_mean = X.mean(0)
         X = np.copy(X) - self.X_mean
         sorted_k_eig_vectors = PCA.get_sorted_eig_vec(X, self.k)
+        self.principal_components = sorted_k_eig_vectors
         self.transformation_matrix = sorted_k_eig_vectors.T
 
     def transform(self, X):

@@ -1,5 +1,4 @@
 from PCA import PCA
-from Parser import parse_data, get_points_and_labels_from_data, extract_classes_from_data_set
 from matplotlib import pyplot as plt
 import numpy as np
 import math
@@ -7,6 +6,25 @@ import glob
 import os
 import cv2
 
+
+image_shape = (16,16)
+
+
+def plot_eigenfaces(title, images, cols=5):
+    rows = math.ceil(len(images) / cols)
+    plt.figure(figsize=(8,8))
+    plt.suptitle(title, size=20)
+
+    for i, component in enumerate(images):
+        plt.subplot(rows, cols, i + 1)
+        component += abs(component.min())
+        component *= (1.0 / component.max())
+        image = np.reshape(component, (data_set_dimensions, data_set_dimensions))
+        plt.imshow(image, cmap=plt.cm.binary)
+        plt.xticks(())
+        plt.yticks(())
+
+    plt.show()
 
 def read_pgm(file_name):
     return cv2.imread(file_name, -1)
@@ -27,17 +45,8 @@ data_set = np.array(data_set)
 
 
 pca_eigenfaces = PCA(30)
-# data = parse_data('digits_test.data')
-# X, y = get_points_and_labels_from_data(data, 0)
-# data_set, _ = extract_classes_from_data_set(X, y, [0])
 pca_eigenfaces.fit(data_set)
 data_set_dimensions = int(math.sqrt(len(data_set[0])))
-principal_components = pca_eigenfaces.transformation_matrix.T
+principal_components = pca_eigenfaces.principal_components
 
-for i, component in enumerate(principal_components):
-    component += abs(component.min())
-    component *= (1.0 / component.max())
-    image = np.reshape(component, (data_set_dimensions, data_set_dimensions)).astype(np.float32).T
-
-    # plt.imshow(image, cmap=plt.cm.binary)
-    plt.imsave('./eigenfaces/face_{}.png'.format(i+1), image, cmap=plt.cm.binary)
+plot_eigenfaces('Eigenfaces', principal_components)
