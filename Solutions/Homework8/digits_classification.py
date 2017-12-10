@@ -4,7 +4,7 @@ from PCA import PCA
 from Parser import get_data_set
 
 X_train, X_test, y_train, y_test = get_data_set('digits.data')
-pca = PCA(230)
+pca = PCA(100)
 train_transformed = pca.fit_transform(X_train)
 test_transformed = pca.transform(X_test)
 

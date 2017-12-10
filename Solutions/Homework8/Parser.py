@@ -11,7 +11,7 @@ def parse_data(file_name, sep=' '):
 
 
 def get_points_and_labels_from_data(data, label_idx=0):
-    points = (np.array(data[:,label_idx:], dtype=np.float64) if label_idx == 0 else
+    points = (np.array(data[:, 1:], dtype=np.float64) if label_idx == 0 else
               np.array(data[:, :label_idx], dtype=np.float64))
     labels = np.array(data[:,label_idx])
 
