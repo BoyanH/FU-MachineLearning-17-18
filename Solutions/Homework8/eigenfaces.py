@@ -27,17 +27,17 @@ data_set = np.array(data_set)
 
 
 pca_eigenfaces = PCA(30)
-# data = parse_data('digits_test.data')
-# X, y = get_points_and_labels_from_data(data, 0)
-# data_set, _ = extract_classes_from_data_set(X, y, [0])
+data = parse_data('digits_test.data')
+X, y = get_points_and_labels_from_data(data, 0)
+data_set, _ = extract_classes_from_data_set(X, y, [0])
 pca_eigenfaces.fit(data_set)
 data_set_dimensions = int(math.sqrt(len(data_set[0])))
 principal_components = pca_eigenfaces.transformation_matrix.T
 
 for i, component in enumerate(principal_components):
     component += abs(component.min())
-    component *= (1.0 / component.max())
-    image = np.reshape(component, (data_set_dimensions, data_set_dimensions)).astype(np.float32).T
+    component *= (255.0 / component.max())
+    image = np.reshape(component, (data_set_dimensions, data_set_dimensions))
 
     # plt.imshow(image, cmap=plt.cm.binary)
     plt.imsave('./eigenfaces/face_{}.png'.format(i+1), image, cmap=plt.cm.binary)
