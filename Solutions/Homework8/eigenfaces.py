@@ -20,13 +20,10 @@ for file in files:
     data_set.append(image.flatten())
 
 data_set = np.array(data_set)
-print('data set parsed')
 
 # drops quickly until about k=320
 # but really quickly until about 30, plus we can't really submit 320 eigenfaces for this homework...
 # PCA.plot_variance_for_k(data_set, save_plot_name='eigenfaces_variance_for_k')
-PCA.plot_variance_for_k(data_set)
-print('plotted')
 
 
 pca_eigenfaces = PCA(30)
@@ -37,10 +34,10 @@ pca_eigenfaces.fit(data_set)
 data_set_dimensions = int(math.sqrt(len(data_set[0])))
 principal_components = pca_eigenfaces.transformation_matrix.T
 
-for component in principal_components:
+for i, component in enumerate(principal_components):
     component += abs(component.min())
     component *= (1.0 / component.max())
     image = np.reshape(component, (data_set_dimensions, data_set_dimensions)).astype(np.float32).T
 
-    plt.imshow(image, cmap=plt.cm.binary)
-    plt.show()
+    # plt.imshow(image, cmap=plt.cm.binary)
+    plt.imsave('./eigenfaces/face_{}.png'.format(i+1), image, cmap=plt.cm.binary)
