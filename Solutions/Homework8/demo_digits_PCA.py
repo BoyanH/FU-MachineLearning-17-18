@@ -17,5 +17,6 @@ for a in range(10):
 
         plt.scatter(X_a[:,0], X_a[:,1], c='#0000FF')
         plt.scatter(X_b[:,0], X_b[:,1], c='#00FF00')
+        plt.xlabel('{} vs {}'.format(a, b), fontsize=24)
         plt.savefig('figs/{}vs{}.png'.format(a,b))
         plt.clf()

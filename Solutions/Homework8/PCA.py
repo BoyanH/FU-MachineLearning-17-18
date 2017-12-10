@@ -22,6 +22,7 @@ class PCA(Classifier):
     def get_eig_vec_and_val(X):
         covariance_matrix = np.cov(X, rowvar=False)
         # the covariance matrix is always symmetric, we don't need to bother any further
+        # therefore, we can also use eigh instead of eig
         return np.linalg.eigh(covariance_matrix)
 
     @staticmethod
@@ -47,9 +48,6 @@ class PCA(Classifier):
         the space defined by those eigenvectors and their corresponding eigenvalues
         '''
 
-        # center data set
-        self.X_mean = X.mean(0)
-        X = np.copy(X) - self.X_mean
         sorted_k_eig_vectors = PCA.get_sorted_eig_vec(X, self.k)
         self.principal_components = sorted_k_eig_vectors
         self.transformation_matrix = sorted_k_eig_vectors.T
@@ -66,8 +64,6 @@ class PCA(Classifier):
         :return: X in the space defined by the first k eigenvectors of the fit data set
         '''
 
-        # center data
-        X = np.copy(X) - self.X_mean
         return X.dot(self.transformation_matrix)
 
     def fit_transform(self, X):
@@ -81,8 +77,6 @@ class PCA(Classifier):
         ks = np.arange(2, len(X[0]), 1)
 
         variance_diffs = np.vectorize(lambda k: abs(total_variance - sorted_eig_values[:k].sum()))(ks)
-        # for k in ks:
-        #     variance_diffs.append(abs(total_variance - sorted_eig_values[:k].sum()))
 
         plt.plot(ks, variance_diffs)
 
