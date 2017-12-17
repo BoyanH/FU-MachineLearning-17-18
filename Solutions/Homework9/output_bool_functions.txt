@@ -1,0 +1,3 @@
+Score and: 1.0
+Score or: 1.0
+Score xor: 1.0
