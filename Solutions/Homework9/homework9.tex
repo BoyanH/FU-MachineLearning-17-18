@@ -60,24 +60,20 @@ Score train: 0.9512907191149355
 \includegraphics[height=8cm]{./25inner.png}
 
 Output: \\
+Score: 0.8182795698924731 \\
 Score train: 0.8678549477566072 \\
-Score: 0.8182795698924731
 
 \section*{2 Hidden Layers mit 20 und 15 Neuronen, circa 7 Batches (max. 1000 Beispiele pro Batch)}
 Wir wurden gerne noch mehr mit mehreren Schichten spielen, das war aber viel zu rechenaufwändig...
 
-
-Wie man aber hier sieht, haben wir bei den Testdatensatz besseres Score als bei den Trainingsdatesatz,
-was ein sehr gutes Zeichen in Richtung "nicht auswendig lernen" ist. Yey :)
-
 Output
 \begin{lstlisting}
-Score train: 0.7744314689612785
 Score: 0.7548387096774194
-
-\includegraphics[height=8cm]{./2_hidden_layers_20_15_with_7_batches.png}
+Score train: 0.7744314689612785
 
 \end{lstlisting}
+
+\includegraphics[height=8cm]{./2_hidden_layers_20_15_with_7_batches.png}
 
 \section*{1 Hidden Layer, 20 Neuronen, großen Datensatz}
 Leider müssten wir den Code von NN.py noch etwas ändern, damit wir eine vernünftige Laufzeit kriegen. Wir haben
