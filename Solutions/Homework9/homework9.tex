@@ -22,19 +22,19 @@ Link zum Git Repository: \url{https://github.com/BoyanH/FU-MachineLearning-17-18
 Wir haben zwei Implementierungen - eine mit streng nur 1 hidden Layer und eine, die als Argument ein Tupel, dass
 die Anzahl von Neuronen pro Layer beschreibt und damit auch die Anzahl von layers. Die komplexere Implementierung
 ist aber deutlich weniger lesbar und viel zu schwierig einzustellen.
-Deswegen werden uns hier auf die Beschreibung unserer simpleren Implementierung konzentrieren. Beide Implementierungen
+Deswegen werden wir uns hier auf die Beschreibung unserer simpleren Implementierung konzentrieren. Beide Implementierungen
 sind am Ende des Blattes zu sehen.
 
 \section*{Evaluation}
 Die Methode ist, wie man später anhand der booleschen Funktionen sieht, viel mächtiger, aber auch viel schwieriger
-einzustellen. Wir haben eine Fehlerrate von knapp über 11% bekommen, was eigentlich sehr schlecht ist. Wir denken aber,
+einzustellen. Wir haben eine Fehlerrate von knapp über 11\% bekommen, was eigentlich sehr schlecht ist. Wir denken aber,
 dass das eher an der Lernrate und Anzahl von Neuronen / Schichten im Netz hängt. Die Methode ist auch sehr aufwändig
 im Sinne von Rechnerressourcen, wie aber im Tutorial beschrieben, könnte diese effizient in Hardware implementiert
 werden. Wenn wir aber uns entschieden sollen für diesen Datensatz (Ziffererkennung) wurden wir eher eine lineare
 Methode nehmen, die viel schneller ist und leichter zu interpretieren. Wir haben aber immer noch Hoffnung, dass wir
-bessere neuronale Netze implementieren werden ^^ \\ \\
+bessere neuronale Netze implementieren werden. \\ \\
 
-Wie wir auf der offizieler Seite des Datensatz gesehen haben, benutzen die Leute echt viele hidden Layers um die
+Wie wir auf der offizieler Seite des Datensatz gesehen haben, benutzt man echt viele hidden Layers um die
 Daten gut zu klassifizieren. Leider sind beide unsere Implementierung und Rechnern nicht so perfekt für solche
 Ansätze.
 
@@ -68,7 +68,7 @@ Wir wurden gerne noch mehr mit mehreren Schichten spielen, das war aber viel zu 
 
 
 Wie man aber hier sieht, haben wir bei den Testdatensatz besseres Score als bei den Trainingsdatesatz,
-was ein sehr gutes Zeichen in Richtung "nicht auswendig lernen" ist. Yey ^^
+was ein sehr gutes Zeichen in Richtung "nicht auswendig lernen" ist. Yey :)
 
 Output
 \begin{lstlisting}
@@ -80,7 +80,87 @@ Score: 0.7548387096774194
 \end{lstlisting}
 
 \section*{1 Hidden Layer, 20 Neuronen, großen Datensatz}
+Leider müssten wir den Code von NN.py noch etwas ändern, damit wir eine vernünftige Laufzeit kriegen. Wir haben
+batches eingefügt und auch einstellbare Anzahl von Beispiele pro Batch. Dazu müssten wir leider nur den Score
+innerhalb des Batches plotten lassen, sonst dauert eine Prediction innerhalb der Iterationsschleife viel zu lange.
+Unsere Methode ist für den großen Datensatz gar nicht optimal, da es lange Zeit braucht zum Ausführen
+könnten wir es nicht viel optimieren. \\
 
+Da das kleine Datensatz nur etwas über 6 tausend Beispiele hat, ist das Plotting da immer noch korrekt mit der ganzen
+Fehler bei der Trainingsdatensatz. \\
+
+Hier wurden auch nur 250 Iterationen pro Batch gemacht, also das ganze ist weit weg von präzise, wir wollten aber
+schauen was für Ergebnisse man bekommt mit dem großen Datensatz, wenn man mehrere unterschiedliche Beispiele sieht und
+weniger dabei korrigiert.\\
+
+Output
+
+\begin{lstlisting}
+fetching data-set
+MNIST original fetched
+#Batches: 49
+#Iterations per batch: 250
+Batch #1 completed!
+Batch #2 completed!
+Batch #3 completed!
+Batch #4 completed!
+Batch #5 completed!
+Batch #6 completed!
+Batch #7 completed!
+Batch #8 completed!
+Batch #9 completed!
+Batch #10 completed!
+Batch #11 completed!
+Batch #12 completed!
+Batch #13 completed!
+Batch #14 completed!
+Batch #15 completed!
+Batch #16 completed!
+Batch #17 completed!
+Batch #18 completed!
+Batch #19 completed!
+Batch #20 completed!
+Batch #21 completed!
+Batch #22 completed!
+Batch #23 completed!
+Batch #24 completed!
+Batch #25 completed!
+Batch #26 completed!
+Batch #27 completed!
+Batch #28 completed!
+Batch #29 completed!
+Batch #30 completed!
+Batch #31 completed!
+Batch #32 completed!
+Batch #33 completed!
+Batch #34 completed!
+Batch #35 completed!
+Batch #36 completed!
+Batch #37 completed!
+Batch #38 completed!
+Batch #39 completed!
+Batch #40 completed!
+Batch #41 completed!
+Batch #42 completed!
+Batch #43 completed!
+Batch #44 completed!
+Batch #45 completed!
+Batch #46 completed!
+Batch #47 completed!
+Batch #48 completed!
+Batch #49 completed!
+Score train: 0.8551020408163266
+Score: 0.8544761904761905
+
+\end{lstlisting}
+
+\includegraphics[height=8cm]{./20_inner_big.png}
+
+Wie man auf dem Plot sieht, senkt das Score wenn ein neues Batch eingefügt wird, da wir diese Beispiele noch nie
+gesehen haben. Dann wird die Korrektur bei den Gewichtsmatritzen gemacht und den Score steigt wieder.
+Ein Score von 85\% finden wir eigentlich ganz toll für nur 250 Iterationen pro Batch und keine
+perfekte Anpassung des Netzes. Das zeigt, dass die Unterteilung
+des Datensatzes in Batches keine schlechte Idee ist.
 
 \section*{Boolesche Funktionen}
 
@@ -92,9 +172,15 @@ Score xor: 1.0
 
 \end{lstlisting}
 
+\section*{AND}
+
 \includegraphics[height=8cm]{./nn_and.png}
 
+\section*{OR}
+
 \includegraphics[height=8cm]{./nn_or.png}
+
+\section*{XOR}
 
 \includegraphics[height=8cm]{./nn_xor.png}
 
@@ -106,13 +192,21 @@ hat gefehlt in den Formeln, dazu kommen wir nocht.
 
 \section*{Fit Methode}
 
-Interessant hier wäre vielleicht, dass wir den Datensatz in Batches mit je 5000 Beispiele unterteilen, sonst
+Interessant hier wäre vielleicht, dass wir den Datensatz in Batches mit je 7000 Beispiele unterteilen, sonst
 können wir von den großen Datensatz gar nicht lernen. Adaptive Lernrate hat uns in dem Beispiel nicht geholfen,
 wahrscheinlich war die Fehler kleiner wird und damit auch ihre Ableitung, wir korrigieren mit der Zeit immer
-weniger.
+weniger. Weiter plotten wir nur den Score innerhalb des Batches und nicht das globale auf dem ganzen Trainingssatz.
+Deswegen sieht man auch, dass den Score nach je Batch etwas senkt.
+
+Es gibt nur zwei Unterschiede von den gegebenen Formeln. Erstens haben wir keine Diagonalmatrix benutzt,
+aber das selbe mit Skalarprodukt erreicht. Der Grund war, dass wir für je Output eine Matrix bekommen, und diese man
+in den Diagonalen einer weiteren Matrtitze nicht darstellen kann. \\ \\
+
+Die zweite Unterschied ist, dass wir für die Berechnung der Delta (Backpropagated error) die transponierte
+Gewichtsmatrix benutzt haben.
 
 \begin{lstlisting}[style=py]
-    def fit(self, X, y):
+        def fit(self, X, y):
         self.history = []
         self.unique_labels = np.unique(y)
         X_ = self.data_normalizer.fit_transform(X)
@@ -124,7 +218,9 @@ weniger.
             np.random.randn(self.size_hidden, self.size_output),
             np.ones(self.size_output)))
 
-        batch_size = 5000
+        batch_size = self.batch_size
+        print('#Batches: {}'.format(math.ceil(len(X_) / batch_size)))
+        print('#Iterations per batch: {}'.format(self.max_iterations))
         for batch_start in range(0, len(X_), batch_size):
             Xb = X_[batch_start:batch_start + batch_size]
             yb = y_[batch_start:batch_start + batch_size]
@@ -143,7 +239,13 @@ weniger.
                 self.W2 += deltaW2
 
                 # self.learning_rate = self.learning_rate * 1 / (1 + 0.0001 * i)
-                self.history.append(self.score(X, y))
+
+                if self.print_score_per_bach:
+                    self.history.append(np.mean(self.unique_labels[o2.argmax(1)] == self.unique_labels[yb.argmax(1)]))
+                else:
+                    self.history.append(self.score(X, y))
+
+            print('Batch #{} completed!'.format(math.floor(batch_start / batch_size) + 1))
 \end{lstlisting}
 
 \section*{Labels zu gewünschten Output}
@@ -219,7 +321,7 @@ print('Score xor: {}'.format(nn.score(X, y_and)))
 
 \end{lstlisting}
 
-\section*{Vollständiges Code digits\_small\_nn.py digits\_big\_nn.py analog}
+\section*{Vollständiges Code digits\_small\_nn.py}
 
 \begin{lstlisting}[style=py]
 from Parser import get_data_set
@@ -235,6 +337,49 @@ print('Score: {}'.format(nn.score(X_test, y_test)))
 
 \end{lstlisting}
 
+\section*{Vollständiges Code digits\_big\_nn.py}
+
+\begin{lstlisting}[style=py]
+from sklearn.datasets import fetch_mldata
+from sklearn.model_selection import train_test_split
+import numpy as np
+from NN import NN
+
+print('fetching data-set')
+mnist = fetch_mldata('mnist-original', data_home='./Dataset/mnist.pkl/mnist_dataset/')
+print('MNIST original fetched')
+X = np.array(mnist.data, dtype=np.float64)
+y = mnist.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.7, test_size=0.3,
+                                                        random_state=1)
+
+
+nn = NN(max_iterations=250, print_score_per_bach=True, batch_size=1000)
+nn.fit(X_train, y_train)
+nn.plot_accuracies('./20_inner_big.png')
+print('Score train: {}'.format(nn.score(X_train, y_train)))
+print('Score: {}'.format(nn.score(X_test, y_test)))
+
+\end{lstlisting}
+
+\section*{Vollständiges Code DataNormalizer.py (von Musterlösung genommen und etwas angepasst)}
+
+\begin{lstlisting}[style=py]
+import numpy as np
+
+class DataNormalizer:
+    def fit(self, X):
+        self.mean = np.mean(X, axis=0)
+        self.var = np.var(X, axis=0) + np.nextafter(0, 1)
+
+    def transform(self, X):
+        return (X - self.mean) / self.var
+
+    def fit_transform(self, X):
+        self.fit(X)
+        return self.transform(X)
+\end{lstlisting}
+
 \section*{Vollständiges Code NN.py}
 
 \begin{lstlisting}[style=py]
@@ -242,18 +387,22 @@ from Classifier import Classifier
 from DataNormalizer import DataNormalizer
 import numpy as np
 from matplotlib import pyplot as plt
+import math
 
 
 class NN(Classifier):
-    def __init__(self, max_iterations=3000, learning_rate=0.0020, size_hidden=20, size_output=10):
+    def __init__(self, max_iterations=3000, learning_rate=0.0020,
+                 size_hidden=20, size_output=10, print_score_per_bach=False, batch_size=7000):
         self.data_normalizer = DataNormalizer()
         self.size_hidden = size_hidden
         self.size_output = size_output
         self.max_iterations = max_iterations
         self.learning_rate = learning_rate
+        self.print_score_per_bach = print_score_per_bach
         self.W1 = None
         self.W2 = None
         self.unique_labels = None
+        self.batch_size = batch_size
 
     def fit(self, X, y):
         self.history = []
@@ -267,7 +416,9 @@ class NN(Classifier):
             np.random.randn(self.size_hidden, self.size_output),
             np.ones(self.size_output)))
 
-        batch_size = 5000
+        batch_size = self.batch_size
+        print('#Batches: {}'.format(math.ceil(len(X_) / batch_size)))
+        print('#Iterations per batch: {}'.format(self.max_iterations))
         for batch_start in range(0, len(X_), batch_size):
             Xb = X_[batch_start:batch_start + batch_size]
             yb = y_[batch_start:batch_start + batch_size]
@@ -286,7 +437,13 @@ class NN(Classifier):
                 self.W2 += deltaW2
 
                 # self.learning_rate = self.learning_rate * 1 / (1 + 0.0001 * i)
-                self.history.append(self.score(X, y))
+
+                if self.print_score_per_bach:
+                    self.history.append(np.mean(self.unique_labels[o2.argmax(1)] == self.unique_labels[yb.argmax(1)]))
+                else:
+                    self.history.append(self.score(X, y))
+
+            print('Batch #{} completed!'.format(math.floor(batch_start / batch_size) + 1))
 
     def feed_forward(self, X):
         o_ = np.c_[X, np.ones(len(X))]

@@ -1,0 +1,55 @@
+fetching data-set
+MNIST original fetched
+#Batches: 49
+#Iterations per batch: 250
+Batch #1 completed!
+Batch #2 completed!
+Batch #3 completed!
+Batch #4 completed!
+Batch #5 completed!
+Batch #6 completed!
+Batch #7 completed!
+Batch #8 completed!
+Batch #9 completed!
+Batch #10 completed!
+Batch #11 completed!
+Batch #12 completed!
+Batch #13 completed!
+Batch #14 completed!
+Batch #15 completed!
+Batch #16 completed!
+Batch #17 completed!
+Batch #18 completed!
+Batch #19 completed!
+Batch #20 completed!
+Batch #21 completed!
+Batch #22 completed!
+Batch #23 completed!
+Batch #24 completed!
+Batch #25 completed!
+Batch #26 completed!
+Batch #27 completed!
+Batch #28 completed!
+Batch #29 completed!
+Batch #30 completed!
+Batch #31 completed!
+Batch #32 completed!
+Batch #33 completed!
+Batch #34 completed!
+Batch #35 completed!
+Batch #36 completed!
+Batch #37 completed!
+Batch #38 completed!
+Batch #39 completed!
+Batch #40 completed!
+Batch #41 completed!
+Batch #42 completed!
+Batch #43 completed!
+Batch #44 completed!
+Batch #45 completed!
+Batch #46 completed!
+Batch #47 completed!
+Batch #48 completed!
+Batch #49 completed!
+Score train: 0.8551020408163266
+Score: 0.8544761904761905

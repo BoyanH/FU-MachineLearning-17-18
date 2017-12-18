@@ -2,18 +2,22 @@ from Classifier import Classifier
 from DataNormalizer import DataNormalizer
 import numpy as np
 from matplotlib import pyplot as plt
+import math
 
 
 class NN(Classifier):
-    def __init__(self, max_iterations=3000, learning_rate=0.0020, size_hidden=20, size_output=10):
+    def __init__(self, max_iterations=3000, learning_rate=0.0020,
+                 size_hidden=20, size_output=10, print_score_per_bach=False, batch_size=7000):
         self.data_normalizer = DataNormalizer()
         self.size_hidden = size_hidden
         self.size_output = size_output
         self.max_iterations = max_iterations
         self.learning_rate = learning_rate
+        self.print_score_per_bach = print_score_per_bach
         self.W1 = None
         self.W2 = None
         self.unique_labels = None
+        self.batch_size = batch_size
 
     def fit(self, X, y):
         self.history = []
@@ -27,7 +31,9 @@ class NN(Classifier):
             np.random.randn(self.size_hidden, self.size_output),
             np.ones(self.size_output)))
 
-        batch_size = 5000
+        batch_size = self.batch_size
+        print('#Batches: {}'.format(math.ceil(len(X_) / batch_size)))
+        print('#Iterations per batch: {}'.format(self.max_iterations))
         for batch_start in range(0, len(X_), batch_size):
             Xb = X_[batch_start:batch_start + batch_size]
             yb = y_[batch_start:batch_start + batch_size]
@@ -46,7 +52,13 @@ class NN(Classifier):
                 self.W2 += deltaW2
 
                 # self.learning_rate = self.learning_rate * 1 / (1 + 0.0001 * i)
-                self.history.append(self.score(X, y))
+
+                if self.print_score_per_bach:
+                    self.history.append(np.mean(self.unique_labels[o2.argmax(1)] == self.unique_labels[yb.argmax(1)]))
+                else:
+                    self.history.append(self.score(X, y))
+
+            print('Batch #{} completed!'.format(math.floor(batch_start / batch_size) + 1))
 
     def feed_forward(self, X):
         o_ = np.c_[X, np.ones(len(X))]
