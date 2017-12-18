@@ -27,22 +27,26 @@ class NN(Classifier):
             np.random.randn(self.size_hidden, self.size_output),
             np.ones(self.size_output)))
 
-        for i in range(self.max_iterations):
-            o_, o1, o1_, o2, o2_ = self.feed_forward(X_)
-            W2_ = self.W2[:-1]
-            d1 = NN.sigmoid_derived(o1) # not diagonal matrix as in lecture, because sigmoid_derived(o1) is a vector
-            d2 = NN.sigmoid_derived(o2)
-            e = o2 - y_
-            delta2 = d2 * e
-            # transposing of the weights matrix missing in formula in lecture/tutorial of professor
-            delta1 = d1 * (delta2.dot(W2_.T))
-            deltaW2 = (-self.learning_rate * (delta2.T.dot(o1_))).T
-            deltaW1 = (-self.learning_rate * delta1.T.dot(o_)).T
-            self.W1 += deltaW1
-            self.W2 += deltaW2
+        batch_size = 5000
+        for batch_start in range(0, len(X_), batch_size):
+            Xb = X_[batch_start:batch_start + batch_size]
+            yb = y_[batch_start:batch_start + batch_size]
+            for i in range(self.max_iterations):
+                o_, o1, o1_, o2, o2_ = self.feed_forward(Xb)
+                W2_ = self.W2[:-1]
+                d1 = NN.sigmoid_derived(o1) # not diagonal matrix as in lecture, because sigmoid_derived(o1) is a vector
+                d2 = NN.sigmoid_derived(o2)
+                e = o2 - yb
+                delta2 = d2 * e
+                # transposing of the weights matrix missing in formula in lecture/tutorial of professor
+                delta1 = d1 * (delta2.dot(W2_.T))
+                deltaW2 = (-self.learning_rate * (delta2.T.dot(o1_))).T
+                deltaW1 = (-self.learning_rate * delta1.T.dot(o_)).T
+                self.W1 += deltaW1
+                self.W2 += deltaW2
 
-            # self.learning_rate = self.learning_rate * 1 / (1 + 0.0001 * i)
-            self.history.append(self.score(X, y))
+                # self.learning_rate = self.learning_rate * 1 / (1 + 0.0001 * i)
+                self.history.append(self.score(X, y))
 
     def feed_forward(self, X):
         o_ = np.c_[X, np.ones(len(X))]
