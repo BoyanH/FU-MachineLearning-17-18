@@ -1,0 +1,9 @@
+2420 weak classifiers were successfully trained and their predictions saved!
+Score train: 0.8251397448760213
+Score test: 0.8468288625493866
+Confusion matrix train: 
+[[4154  826]
+ [ 394 1603]]
+Confusion matrix test: 
+[[20234   344]
+ [ 3339   128]]
